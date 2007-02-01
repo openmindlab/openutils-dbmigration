@@ -1,2 +1,13 @@
 * text=auto !eol
 /pom.xml svneol=native#text/xml
+src/main/java/it/openutils/migration/DbSetupManager.java svneol=native#text/plain
+src/main/java/it/openutils/migration/DbSetupManagerImpl.java svneol=native#text/plain
+src/main/java/it/openutils/migration/DbVersionManager.java svneol=native#text/plain
+src/main/java/it/openutils/migration/DefaultDbVersionManagerImpl.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/BaseDbTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/DbTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/GenericConditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/GenericScriptBasedConditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/ScriptBasedUnconditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/update/DbUpdate.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/update/ScriptBasedDbUpdate.java svneol=native#text/plain
