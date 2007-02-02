@@ -29,6 +29,9 @@ public class GenericScriptBasedConditionalTask implements DbTask
      */
     private static Logger log = LoggerFactory.getLogger(GenericScriptBasedConditionalTask.class);
 
+    /**
+     * Script list to execute
+     */
     protected List<Resource> scripts;
 
     private String check;
@@ -51,6 +54,10 @@ public class GenericScriptBasedConditionalTask implements DbTask
         this.check = check;
     }
 
+    /**
+     * @param script The script resource
+     * @return The script name
+     */
     protected String objectNameFromFileName(Resource script)
     {
         return StringUtils.substringBeforeLast(script.getFilename(), ".");
