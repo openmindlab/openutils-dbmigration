@@ -3,7 +3,6 @@
  */
 package it.openutils.migration.task.setup;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -163,30 +162,46 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             for (short k = 0; k < columns.size() && k <= row.getLastCellNum(); k++)
             {
                 HSSFCell cell = row.getCell(k);
+                String value = null;
+
                 if (cell == null)
                 {
-                    return;
+                    value = StringUtils.EMPTY;
                 }
-
-                String value = null;
-                if (cell.getCellType() == HSSFCell.CELL_TYPE_STRING)
+                else if (cell.getCellType() == HSSFCell.CELL_TYPE_STRING)
                 {
                     value = cell.getStringCellValue();
                 }
                 else if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC)
                 {
                     double valueDouble = cell.getNumericCellValue();
-                    value = Double.toString(valueDouble);
+                    // when need to really check if it is a double or an int
+                    double fraction = valueDouble % 1;
+                    if (fraction == 0)
+                    {
+                        value = Integer.toString((int) valueDouble);
+                    }
+                    else
+                    {
+                        value = Double.toString(valueDouble);
+                    }
                 }
 
                 if (StringUtils.isEmpty(value))
                 {
-                    return;
+                    value = StringUtils.EMPTY;
                 }
                 values.add(value);
             }
 
             Object[] checkParams = ArrayUtils.subarray(values.toArray(), 0, checkNum);
+            for (int i = 0; i < checkParams.length; i++)
+            {
+                if (StringUtils.isEmpty((String) checkParams[i]))
+                {
+                    return;
+                }
+            }
 
             int existing;
             try
