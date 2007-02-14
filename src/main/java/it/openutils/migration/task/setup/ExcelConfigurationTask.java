@@ -22,6 +22,7 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
@@ -129,10 +130,10 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
         log.debug("Table: {}, Columns: {}", tableName, columns);
 
-        String checkStatement = con.getCheckQuery();
-        String insertStatement = con.getInsertQuery();
+        String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
+        String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
 
-        processRecords(sheet, columns, checkStatement, insertStatement, dataSource);
+        processRecords(sheet, columns, checkStatement, insertStatement, dataSource, tableName);
     }
 
     /**
@@ -142,16 +143,16 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      * @param insertStatement
      */
     private void processRecords(HSSFSheet sheet, List<String> columns, String checkStatement, String insertStatement,
-        DataSource dataSource)
+        DataSource dataSource, String tableName)
     {
         SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
         int checkNum = StringUtils.countMatches(checkStatement, "?");
         int insertNum = StringUtils.countMatches(insertStatement, "?");
 
         HSSFRow row;
-        for (short u = 1; u <= sheet.getLastRowNum(); u++)
+        for (short rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++)
         {
-            row = sheet.getRow(u);
+            row = sheet.getRow(rowNum);
             if (row == null)
             {
                 return;
@@ -191,6 +192,12 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 {
                     value = StringUtils.EMPTY;
                 }
+
+                if ("<NULL>".equals(value))
+                {
+                    value = null;
+                }
+
                 values.add(value);
             }
 
@@ -220,7 +227,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 Object[] insertParams = ArrayUtils.subarray(values.toArray(), 0, insertNum);
                 log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
                     .toString(insertParams));
-                jdbcTemplate.update(insertStatement, insertParams);
+
+                try
+                {
+                    jdbcTemplate.update(insertStatement, insertParams);
+                }
+                catch (DataIntegrityViolationException bsge)
+                {
+                    log
+                        .error(
+                            "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
+                            new Object[]{
+                                tableName,
+                                rowNum,
+                                insertStatement,
+                                ArrayUtils.toString(insertParams),
+                                bsge.getMessage() });
+                    return;
+                }
             }
 
         }
