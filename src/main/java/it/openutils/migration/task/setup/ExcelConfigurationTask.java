@@ -5,6 +5,10 @@ package it.openutils.migration.task.setup;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +26,11 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 /**
@@ -110,9 +116,9 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      * @param sheet
      * @param tableName
      */
-    private void processSheet(HSSFSheet sheet, String tableName, QueryConfig con, DataSource dataSource)
+    private void processSheet(HSSFSheet sheet, final String tableName, QueryConfig con, DataSource dataSource)
     {
-        List<String> columns = new ArrayList<String>();
+        final List<String> columns = new ArrayList<String>();
 
         HSSFRow row = sheet.getRow(0);
         for (short k = 0; k < row.getLastCellNum(); k++)
@@ -130,10 +136,37 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
         log.debug("Table: {}, Columns: {}", tableName, columns);
 
+        final List<Integer> types = new ArrayList<Integer>();
+
+        new JdbcTemplate(dataSource).execute(new ConnectionCallback()
+        {
+
+            public Object doInConnection(Connection con) throws SQLException, DataAccessException
+            {
+                for (String column : columns)
+                {
+                    ResultSet res = con.getMetaData().getColumns(null, null, tableName, column);
+                    if (res.next())
+                    {
+                        types.add(res.getInt("DATA_TYPE"));
+                    }
+                    res.close();
+                }
+                return null;
+            }
+        });
+
         String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
         String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
 
-        processRecords(sheet, columns, checkStatement, insertStatement, dataSource, tableName);
+        processRecords(
+            sheet,
+            columns,
+            ArrayUtils.toPrimitive(types.toArray(new Integer[types.size()]), Types.NULL),
+            checkStatement,
+            insertStatement,
+            dataSource,
+            tableName);
     }
 
     /**
@@ -142,10 +175,10 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      * @param checkStatement
      * @param insertStatement
      */
-    private void processRecords(HSSFSheet sheet, List<String> columns, String checkStatement, String insertStatement,
-        DataSource dataSource, String tableName)
+    private void processRecords(HSSFSheet sheet, List<String> columns, int[] types, String checkStatement,
+        String insertStatement, DataSource dataSource, String tableName)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         int checkNum = StringUtils.countMatches(checkStatement, "?");
         int insertNum = StringUtils.countMatches(insertStatement, "?");
 
@@ -225,12 +258,15 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             if (existing == 0)
             {
                 Object[] insertParams = ArrayUtils.subarray(values.toArray(), 0, insertNum);
-                log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
-                    .toString(insertParams));
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
+                        .toString(insertParams));
+                }
 
                 try
                 {
-                    jdbcTemplate.update(insertStatement, insertParams);
+                    jdbcTemplate.update(insertStatement, insertParams, types);
                 }
                 catch (DataIntegrityViolationException bsge)
                 {
@@ -239,11 +275,11 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                             "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
                             new Object[]{
                                 tableName,
-                                rowNum,
+                                rowNum + 1,
                                 insertStatement,
                                 ArrayUtils.toString(insertParams),
                                 bsge.getMessage() });
-                    return;
+                    continue;
                 }
             }
 
