@@ -193,7 +193,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                     value = StringUtils.EMPTY;
                 }
 
-                if ("<NULL>".equals(value))
+                if ("<NULL>".equalsIgnoreCase(value))
                 {
                     value = null;
                 }
