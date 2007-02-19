@@ -126,7 +126,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             String columnName = row.getCell(k).getStringCellValue();
             if (StringUtils.isNotBlank(columnName))
             {
-                columns.add(columnName);
+                columns.add(StringUtils.trim(columnName));
             }
             else
             {
@@ -138,7 +138,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
         final List<Integer> types = new ArrayList<Integer>();
 
-        new JdbcTemplate(dataSource).execute(new ConnectionCallback()
+        boolean result = (Boolean) new JdbcTemplate(dataSource).execute(new ConnectionCallback()
         {
 
             public Object doInConnection(Connection con) throws SQLException, DataAccessException
@@ -150,11 +150,21 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                     {
                         types.add(res.getInt("DATA_TYPE"));
                     }
+                    else
+                    {
+                        log.warn("Unable to determine type for column '{}' in table '{}'", column, tableName);
+                        return false;
+                    }
                     res.close();
                 }
-                return null;
+                return true;
             }
         });
+
+        if (!result)
+        {
+            log.warn("Skipping sheet {} ", tableName);
+        }
 
         String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
         String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
@@ -258,15 +268,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             if (existing == 0)
             {
                 Object[] insertParams = ArrayUtils.subarray(values.toArray(), 0, insertNum);
+                int[] insertTypes = ArrayUtils.subarray(types, 0, insertNum);
                 if (log.isDebugEnabled())
                 {
                     log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
                         .toString(insertParams));
                 }
 
+                if (insertParams.length != insertTypes.length)
+                {
+                    log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
+                        tableName,
+                        insertParams.length,
+                        insertTypes.length });
+                }
+
                 try
                 {
-                    jdbcTemplate.update(insertStatement, insertParams, types);
+                    jdbcTemplate.update(insertStatement, insertParams, insertTypes);
                 }
                 catch (DataIntegrityViolationException bsge)
                 {
