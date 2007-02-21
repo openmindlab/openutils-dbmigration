@@ -44,6 +44,17 @@ public class DbSetupManagerImpl implements DbSetupManager
 
     private TransactionTemplate transactionTemplate;
 
+    private boolean enabled = true;
+
+    /**
+     * Sets the enabled.
+     * @param enabled the enabled to set
+     */
+    public void setEnabled(boolean enabled)
+    {
+        this.enabled = enabled;
+    }
+
     /**
      * Sets the versionManager.
      * @param versionManager the versionManager to set
@@ -94,6 +105,11 @@ public class DbSetupManagerImpl implements DbSetupManager
      */
     public void updateDDL()
     {
+
+        if (!enabled)
+        {
+            log.info("DB migration is disabled, not running tasks.");
+        }
 
         transactionTemplate.execute(new TransactionCallbackWithoutResult()
         {
