@@ -123,14 +123,18 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         HSSFRow row = sheet.getRow(0);
         for (short k = 0; k < row.getLastCellNum(); k++)
         {
-            String columnName = row.getCell(k).getStringCellValue();
-            if (StringUtils.isNotBlank(columnName))
+            HSSFCell cell = row.getCell(k);
+            if (cell != null)
             {
-                columns.add(StringUtils.trim(columnName));
-            }
-            else
-            {
-                break;
+                String columnName = cell.getStringCellValue();
+                if (StringUtils.isNotBlank(columnName))
+                {
+                    columns.add(StringUtils.trim(columnName));
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 

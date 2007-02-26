@@ -109,6 +109,7 @@ public class DbSetupManagerImpl implements DbSetupManager
         if (!enabled)
         {
             log.info("DB migration is disabled, not running tasks.");
+            return;
         }
 
         transactionTemplate.execute(new TransactionCallbackWithoutResult()
