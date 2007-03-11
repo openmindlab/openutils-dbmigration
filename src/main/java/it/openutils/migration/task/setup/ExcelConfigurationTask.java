@@ -300,7 +300,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
                 try
                 {
-                    jdbcTemplate.update(updateStatement, insertParams, insertTypes);
+                    jdbcTemplate.update(insertStatement, insertParams, insertTypes);
                 }
                 catch (DataIntegrityViolationException bsge)
                 {
