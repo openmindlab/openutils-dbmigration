@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -29,8 +30,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 
 /**
@@ -172,6 +175,8 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
         String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
         String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
+        String selectStatement = StringUtils.remove(StringUtils.trim(con.getSelectQuery()), "\n");
+        String updateStatement = StringUtils.remove(StringUtils.trim(con.getUpdateQuery()), "\n");
 
         processRecords(
             sheet,
@@ -179,6 +184,8 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             ArrayUtils.toPrimitive(types.toArray(new Integer[types.size()]), Types.NULL),
             checkStatement,
             insertStatement,
+            selectStatement,
+            updateStatement,
             dataSource,
             tableName);
     }
@@ -188,13 +195,17 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      * @param columns
      * @param checkStatement
      * @param insertStatement
+     * @param updateStatement
+     * @param selectStatement
      */
     private void processRecords(HSSFSheet sheet, List<String> columns, int[] types, String checkStatement,
-        String insertStatement, DataSource dataSource, String tableName)
+        String insertStatement, String selectStatement, String updateStatement, DataSource dataSource, String tableName)
     {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         int checkNum = StringUtils.countMatches(checkStatement, "?");
         int insertNum = StringUtils.countMatches(insertStatement, "?");
+        int selectNum = StringUtils.countMatches(selectStatement, "?");
+        int updateNum = StringUtils.countMatches(updateStatement, "?");
 
         HSSFRow row;
         for (short rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++)
@@ -295,7 +306,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 {
                     log
                         .error(
-                            "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
+                            "Error executing update, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
                             new Object[]{
                                 tableName,
                                 rowNum + 1,
@@ -304,6 +315,90 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                                 bsge.getMessage() });
                     continue;
                 }
+            }
+            else if (StringUtils.isNotBlank(updateStatement) && StringUtils.isNotBlank(selectStatement))
+            {
+                try
+                {
+                    RowMapper rowMapper = new ColumnMapRowMapper();
+                    Object[] selectParams = ArrayUtils.subarray(values.toArray(), 0, selectNum);
+                    List selectResult = jdbcTemplate.query(selectStatement, selectParams, rowMapper);
+                    Map<String, Object> fetchedColumns = (Map<String, Object>) selectResult.get(0);
+                    int i = 0;
+                    boolean updateNeeded = false;
+                    for (String columnName : columns)
+                    {
+                        Object columnObject = fetchedColumns.get(columnName);
+                        if (columnObject == null)
+                        {
+                            continue;
+                        }
+                        String columnValue = ObjectUtils.toString(fetchedColumns.get(columnName));
+                        if (!StringUtils.equals(columnValue, values.get(i)))
+                        {
+                            updateNeeded = true;
+                            break;
+                        }
+                        i++;
+                    }
+                    if (updateNeeded)
+                    {
+                        Object[] updateParams = ArrayUtils.subarray(values.toArray(), 0, updateNum);
+                        int[] insertTypes = ArrayUtils.subarray(types, 0, insertNum);
+                        if (log.isDebugEnabled())
+                        {
+                            log.debug(
+                                "Missing record with key {}; updating {}",
+                                ArrayUtils.toString(checkParams),
+                                ArrayUtils.toString(updateParams));
+                        }
+
+                        if (updateParams.length != insertTypes.length)
+                        {
+                            log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
+                                tableName,
+                                updateParams.length,
+                                insertTypes.length });
+                        }
+
+                        try
+                        {
+                            Object[] compoundUpdateParams = new Object[checkParams.length + updateParams.length];
+                            System.arraycopy(updateParams, 0, compoundUpdateParams, 0, updateParams.length);
+                            System.arraycopy(
+                                checkParams,
+                                0,
+                                compoundUpdateParams,
+                                compoundUpdateParams.length - 1,
+                                checkParams.length);
+                            jdbcTemplate.update(updateStatement, compoundUpdateParams);
+                        }
+                        catch (DataIntegrityViolationException bsge)
+                        {
+                            log
+                                .error(
+                                    "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
+                                    new Object[]{
+                                        tableName,
+                                        rowNum + 1,
+                                        insertStatement,
+                                        ArrayUtils.toString(updateParams),
+                                        bsge.getMessage() });
+                            continue;
+                        }
+                    }
+                }
+                catch (BadSqlGrammarException bsge)
+                {
+                    log
+                        .error(
+                            "Error executing query to load row values, current possible update of row will be skipped. {} Query in error: {}",
+                            bsge.getMessage(),
+                            checkStatement);
+                    return;
+                }
+                // 1 check if it is the same
+                // 2 update only if they differ
             }
 
         }
@@ -319,6 +414,28 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         private String checkQuery;
 
         private String insertQuery;
+
+        private String selectQuery;
+
+        private String updateQuery;
+
+        /**
+         * Returns the selectQuery.
+         * @return the selectQuery
+         */
+        public String getSelectQuery()
+        {
+            return selectQuery;
+        }
+
+        /**
+         * Sets the selectQuery.
+         * @param selectQuery the selectQuery to set
+         */
+        public void setSelectQuery(String selectQuery)
+        {
+            this.selectQuery = selectQuery;
+        }
 
         /**
          * Returns the checkQuery.
@@ -354,6 +471,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         public void setInsertQuery(String insertQuery)
         {
             this.insertQuery = insertQuery;
+        }
+
+        /**
+         * Returns the updateQuery.
+         * @return the updateQuery
+         */
+        public String getUpdateQuery()
+        {
+            return updateQuery;
+        }
+
+        /**
+         * Sets the updateQuery.
+         * @param updateQuery the updateQuery to set
+         */
+        public void setUpdateQuery(String updateQuery)
+        {
+            this.updateQuery = updateQuery;
         }
     }
 }
