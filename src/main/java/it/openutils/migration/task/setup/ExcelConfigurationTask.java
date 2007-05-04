@@ -53,6 +53,12 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
     private Map<String, ExcelConfigurationTask.QueryConfig> config;
 
     /**
+     * If true, when a record already exists and an updated query is defined it will be updated. Set it to false to only
+     * insert new records.
+     */
+    private boolean updateEnabled = true;
+
+    /**
      * Sets the script.
      * @param script the script to set
      */
@@ -68,6 +74,15 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
     public void setConfig(Map<String, ExcelConfigurationTask.QueryConfig> config)
     {
         this.config = config;
+    }
+
+    /**
+     * Sets the updateEnabled.
+     * @param updateEnabled the updateEnabled to set
+     */
+    public void setUpdateEnabled(boolean updateEnabled)
+    {
+        this.updateEnabled = updateEnabled;
     }
 
     /**
@@ -316,7 +331,9 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                     continue;
                 }
             }
-            else if (StringUtils.isNotBlank(updateStatement) && StringUtils.isNotBlank(selectStatement))
+            else if (updateEnabled
+                && StringUtils.isNotBlank(updateStatement)
+                && StringUtils.isNotBlank(selectStatement))
             {
                 try
                 {
