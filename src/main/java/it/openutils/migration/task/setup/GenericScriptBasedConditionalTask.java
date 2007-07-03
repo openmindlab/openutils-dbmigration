@@ -68,8 +68,22 @@ public class GenericScriptBasedConditionalTask implements DbTask
      */
     public String getDescription()
     {
-        // @todo add better description and avoid NPEs
-        return "Checking " + objectNameFromFileName(scripts.get(0));
+        if (scripts == null)
+        {
+            return "Nothing to do, no scripts configured";
+        }
+
+        StringBuffer result = new StringBuffer();
+        if (!scripts.isEmpty())
+        {
+            result.append("Checking :\n");
+            for (Resource script : scripts)
+            {
+                result.append("  - " + objectNameFromFileName(script) + "\n");
+            }
+
+        }
+        return result.toString();
     }
 
     /**
