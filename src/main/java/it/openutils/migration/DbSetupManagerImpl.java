@@ -139,7 +139,7 @@ public class DbSetupManagerImpl implements DbSetupManager
         log.info("Preparing db, checking {} setup tasks.", setupTasks.size());
         for (DbTask task : setupTasks)
         {
-            log.info(task.getDescription());
+            log.debug(task.getDescription());
             task.execute(dataSource);
         }
 
