@@ -34,7 +34,15 @@ public class GenericScriptBasedConditionalTask implements DbTask
      */
     protected List<Resource> scripts;
 
-    private String check;
+    /**
+     * Check statement.
+     */
+    protected String check;
+
+    /**
+     * Custom description.
+     */
+    protected String description;
 
     /**
      * Sets the scripts.
@@ -55,6 +63,15 @@ public class GenericScriptBasedConditionalTask implements DbTask
     }
 
     /**
+     * Sets the description.
+     * @param description the description to set
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
+    }
+
+    /**
      * @param script The script resource
      * @return The script name
      */
@@ -68,6 +85,11 @@ public class GenericScriptBasedConditionalTask implements DbTask
      */
     public String getDescription()
     {
+        if (StringUtils.isNotEmpty(description))
+        {
+            return description;
+        }
+
         if (scripts == null)
         {
             return "Nothing to do, no scripts configured";
