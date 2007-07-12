@@ -8,7 +8,7 @@
   </parent>
   <artifactId>openutils-dbmigration</artifactId>
   <name>openutils db migration framework</name>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.7.1</version>
   <description />
   <dependencies>
     <dependency>
@@ -84,4 +84,10 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <scm>
+    <connection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-0.7.1</connection>
+    <developerConnection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-0.7.1</developerConnection>
+    <url>http://openutils.svn.sourceforge.net/viewcvs.cgi/openutils/tags/openutils-dbmigration-0.7.1</url>
+  </scm>
 </project>
