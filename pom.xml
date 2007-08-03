@@ -10,6 +10,9 @@
   <name>openutils db migration framework</name>
   <version>0.7.2-SNAPSHOT</version>
   <description />
+  <properties>
+    <spring.version>2.0.6</spring.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -24,7 +27,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
-      <version>2.0.1</version>
+      <version>${spring.version}</version>
       <exclusions>
         <exclusion>
           <groupId>avalon-framework</groupId>
@@ -39,7 +42,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>2.0.1</version>
+      <version>${spring.version}</version>
       <exclusions>
         <exclusion>
           <groupId>avalon-framework</groupId>
@@ -54,7 +57,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>2.0.1</version>
+      <version>${spring.version}</version>
       <exclusions>
         <exclusion>
           <groupId>avalon-framework</groupId>
