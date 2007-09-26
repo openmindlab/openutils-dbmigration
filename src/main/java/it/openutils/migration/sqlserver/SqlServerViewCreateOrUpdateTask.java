@@ -63,6 +63,7 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
             int result = jdbcTemplate.queryForInt(checkQuery, viewName);
 
             String scriptContent = readFully(script);
+            scriptContent = StringUtils.replace(scriptContent, "\t", " ");
 
             if (scriptContent == null)
             {
