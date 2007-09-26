@@ -13,6 +13,7 @@ import java.util.TreeSet;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -45,6 +46,17 @@ public class DbSetupManagerImpl implements DbSetupManager
     private TransactionTemplate transactionTemplate;
 
     private boolean enabled = true;
+
+    private String name;
+
+    /**
+     * Sets the name (outputted in logs, just for reference)
+     * @param name the name to set
+     */
+    public void setName(String name)
+    {
+        this.name = name;
+    }
 
     /**
      * Sets the enabled.
@@ -136,7 +148,8 @@ public class DbSetupManagerImpl implements DbSetupManager
      */
     private void executeSetupTasks()
     {
-        log.info("Preparing db, checking {} setup tasks.", setupTasks.size());
+        log.info("Preparing {}, checking {} setup tasks.", StringUtils.defaultIfEmpty(this.name, "db"), setupTasks
+            .size());
         for (DbTask task : setupTasks)
         {
             log.debug(task.getDescription());
