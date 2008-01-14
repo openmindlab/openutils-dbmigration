@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.openutils.migration.task.update;
-
-import it.openutils.migration.task.setup.DbTask;
-
+package it.openutils.migration.generic;
 
 /**
  * @author fgiust
- * @version $Id$
+ * @version $Id:SqlServerObjCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
  */
-public interface DbUpdate extends DbTask
+public class JdbcTableCreationTask extends JdbcObjectCreationTask
 {
 
-    /**
-     * Returns the version for this update. THe task will be executed only if the current db version is lower than this.
-     * @return target version for this upgrade.
-     */
-    int getVersion();
-
+    protected String objectType = "TABLE";
 }

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.openutils.migration.sqlserver;
+package it.openutils.migration.generic;
 
 import it.openutils.migration.task.setup.GenericScriptBasedConditionalTask;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -27,6 +31,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
@@ -34,73 +41,17 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author fgiust
  * @version $Id:SqlServerObjCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
  */
-public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
+public class JdbcObjectCreationTask extends GenericScriptBasedConditionalTask
 {
 
     /**
      * Logger.
      */
-    private Logger log = LoggerFactory.getLogger(SqlServerObjCreationTask.class);
+    protected Logger log = LoggerFactory.getLogger(getClass());
 
-    /**
-     * Query to check with standard objects' name.
-     */
-    private String unqualifiedObjQuery;
+    protected String objectType = "TABLE";
 
-    /**
-     * Query to check with full database objects' hierarchy.
-     */
-    private String qualifiedObjQuery;
-
-    /**
-     * The db with the objects, synonyms will point to this db.
-     */
-    private String sourceDb;
-
-    /**
-     * Returns the qualifiedObjQuery.
-     * @return the qualifiedObjQuery
-     */
-    public String getQualifiedObjQuery()
-    {
-        return qualifiedObjQuery;
-    }
-
-    /**
-     * Sets the qualifiedObjQuery.
-     * @param qualifiedObjQuery the qualifiedObjQuery to set
-     */
-    public void setQualifiedObjQuery(String qualifiedObjQuery)
-    {
-        this.qualifiedObjQuery = qualifiedObjQuery;
-    }
-
-    /**
-     * Sets the sourceDb.
-     * @param sourceDb the sourceDb to set
-     */
-    public void setSourceDb(String sourceDb)
-    {
-        this.sourceDb = sourceDb;
-    }
-
-    /**
-     * Returns the unqualifiedObjQuery.
-     * @return the unqualifiedObjQuery
-     */
-    public String getUnqualifiedObjQuery()
-    {
-        return unqualifiedObjQuery;
-    }
-
-    /**
-     * Sets the unqualifiedObjQuery.
-     * @param unqualifiedObjQuery the unqualifiedObjQuery to set
-     */
-    public void setUnqualifiedObjQuery(String unqualifiedObjQuery)
-    {
-        this.unqualifiedObjQuery = unqualifiedObjQuery;
-    }
+    protected String catalog;
 
     /**
      * {@inheritDoc}
@@ -109,29 +60,51 @@ public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
     public void execute(DataSource dataSource)
     {
         SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+
         for (Resource script : scripts)
         {
-            String fqTableName = this.objectNameFromFileName(script);
 
-            int result = 0;
+            if (script == null || !script.exists())
+            {
+                log.error("Unable to execute db task \"{}\", script \"{}\" not found.", getDescription(), script);
+                return;
+            }
+
+            String fqTableName = this.objectNameFromFileName(script);
+            String tmptableName = null;
+            String tmpschema = null;
+
             if (StringUtils.contains(fqTableName, "."))
             {
                 String[] tokens = StringUtils.split(fqTableName, ".");
-                result = jdbcTemplate.queryForInt(qualifiedObjQuery, new Object[]{tokens[1], tokens[0] });
+                tmptableName = tokens[1];
+                tmpschema = tokens[0];
             }
             else
             {
-                result = jdbcTemplate.queryForInt(unqualifiedObjQuery, fqTableName);
+                tmptableName = fqTableName;
             }
 
-            if (result == 0)
-            {
-                if (script == null || !script.exists())
-                {
-                    log.error("Unable to execute db task \"{}\", script \"{}\" not found.", getDescription(), script);
-                    return;
-                }
+            final String tableName = tmptableName;
+            final String schema = tmpschema;
 
+            boolean result = (Boolean) new JdbcTemplate(dataSource).execute(new ConnectionCallback()
+            {
+
+                public Object doInConnection(Connection con) throws SQLException, DataAccessException
+                {
+
+                    DatabaseMetaData dbMetadata = con.getMetaData();
+                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{objectType });
+                    boolean tableExists = rs.first();
+                    rs.close();
+
+                    return tableExists;
+                }
+            });
+
+            if (!result)
+            {
                 String scriptContent;
                 InputStream is = null;
 
@@ -155,17 +128,14 @@ public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
 
                 String[] ddls = StringUtils.split(scriptContent, ";");
 
+                log.info("Creating new {} {}", objectType, tableName);
+
                 for (String ddl : ddls)
                 {
                     if (StringUtils.isNotBlank(ddl))
                     {
-                        String ddlReplaced = ddl;
-                        ddlReplaced = StringUtils.isNotBlank(this.sourceDb) ? StringUtils.replace(
-                            ddlReplaced,
-                            "${sourceDb}",
-                            this.sourceDb) : ddlReplaced;
-                        log.debug("Executing:\n{}", ddlReplaced);
-                        jdbcTemplate.update(ddlReplaced);
+                        log.debug("Executing:\n{}", ddl);
+                        jdbcTemplate.update(ddl);
                     }
                 }
             }

@@ -32,10 +32,13 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
 /**
+ * Compares the procedure script with the one stored in the db and drops and recreates it if the scripts differs. Be
+ * aware that tabs chars are ALWAYS considered different, so remove them from your scripts! This works ONLY for SQL
+ * Server 2005.
  * @author Danilo Ghirardelli
- * @version $Id: SqlServerViewCreateOrUpdateTask.java 391 2007-07-10 17:25:42Z fgiust $
+ * @version $Id$
  */
-public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedConditionalTask
+public class SqlServerProcedureCreateOrUpdateTask extends GenericScriptBasedConditionalTask
 {
 
     /**
@@ -44,7 +47,7 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
     private Logger log = LoggerFactory.getLogger(SqlServerObjCreationTask.class);
 
     /**
-     * The db with the objects, synonyms will point to this db.
+     * The db with the objects, may differ from the current.
      */
     private String sourceDb;
 
@@ -64,49 +67,37 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
     @Override
     public void execute(DataSource dataSource)
     {
-
-        String checkQuery = "select count(*) from dbo.sysobjects where id = object_id(?) and OBJECTPROPERTY(id, N'IsView') = 1";
-
+        String checkQuery = "select count(*) from dbo.sysobjects where id = object_id(?) and (OBJECTPROPERTY(id, N'IsProcedure') = 1)";
         SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
-            String viewName = this.objectNameFromFileName(script);
-
-            int result = jdbcTemplate.queryForInt(checkQuery, viewName);
-
+            String procedureName = this.objectNameFromFileName(script);
+            int result = jdbcTemplate.queryForInt(checkQuery, procedureName);
             String scriptContent = readFully(script);
             scriptContent = StringUtils.replace(scriptContent, "\t", " ");
-
-            if (scriptContent == null)
+            if (StringUtils.isBlank(scriptContent))
             {
                 continue;
             }
-
             if (result == 0)
             {
-                log.info("View {} not existing. Creating new view", viewName);
-
-                createView(jdbcTemplate, scriptContent);
+                log.info("Procedure {} not existing. Creating new procedure", procedureName);
+                createProcedure(jdbcTemplate, scriptContent);
             }
             else
-            {
-
+            { // If the script is too long a list will be returned, and it must be joined to get the original script.
                 List<String> previousDDlList = jdbcTemplate.getJdbcOperations().queryForList(
                     "exec sp_helptext ?",
-                    new Object[]{viewName },
+                    new Object[]{procedureName },
                     String.class);
-
                 String previousDDl = StringUtils.join(previousDDlList.toArray(new String[previousDDlList.size()]));
-
                 if (!StringUtils.equals(previousDDl, scriptContent))
                 {
                     log.info(
-                        "Previous definition of view {} differs from actual. Dropping and recreating view",
-                        new Object[]{viewName });
-
-                    jdbcTemplate.update("DROP VIEW [dbo].[" + viewName + "]");
-
-                    createView(jdbcTemplate, scriptContent);
+                        "Previous definition of procedure {} differs from actual. Dropping and recreating procedure",
+                        new Object[]{procedureName });
+                    jdbcTemplate.update("DROP PROCEDURE [" + procedureName + "]");
+                    createProcedure(jdbcTemplate, scriptContent);
                 }
             }
         }
@@ -114,15 +105,14 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
     }
 
     /**
-     * @param jdbcTemplate
-     * @param script
+     * Creates a stored procedure executing the given script.
+     * @param jdbcTemplate Jdbc connection.
+     * @param script Stored procedure script.
      * @return
      */
-    private void createView(SimpleJdbcTemplate jdbcTemplate, String script)
+    private void createProcedure(SimpleJdbcTemplate jdbcTemplate, String script)
     {
-
         String[] ddls = StringUtils.split(script, ";");
-
         for (String ddl : ddls)
         {
             if (StringUtils.isNotBlank(ddl))
@@ -134,8 +124,9 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
     }
 
     /**
-     * @param script
-     * @return
+     * Reads the script from the given resource and convert it to a string suitable for update query.
+     * @param script The script file
+     * @return The script content
      */
     private String readFully(Resource script)
     {
@@ -144,7 +135,6 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
             log.error("Unable to execute db task \"{}\", script \"{}\" not found.", getDescription(), script);
             return null;
         }
-
         String scriptContent;
         InputStream is = null;
 

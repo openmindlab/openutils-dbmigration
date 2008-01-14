@@ -4,9 +4,17 @@ src/main/java/it/openutils/migration/DbSetupManager.java svneol=native#text/plai
 src/main/java/it/openutils/migration/DbSetupManagerImpl.java svneol=native#text/plain
 src/main/java/it/openutils/migration/DbVersionManager.java svneol=native#text/plain
 src/main/java/it/openutils/migration/DefaultDbVersionManagerImpl.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcConditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcIfColumnExistsConditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcObjectCreationTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcTableCreationTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcViewCreationTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreateOrUpdateTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreationTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerGenericAlterTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerObjCreationTask.java -text
+src/main/java/it/openutils/migration/sqlserver/SqlServerProcedureCreateOrUpdateTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/sqlserver/SqlServerProcedureCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerScriptBasedUnconditionalTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerSynonymCreationTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerTableCreationTask.java -text

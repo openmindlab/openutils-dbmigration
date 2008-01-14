@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.openutils.migration.task.setup;
+package it.openutils.migration.generic;
+
+import it.openutils.migration.task.setup.BaseDbTask;
+import it.openutils.migration.task.setup.DbTask;
 
 import javax.sql.DataSource;
 
@@ -23,14 +26,14 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 /**
  * @author fgiust
- * @version $Id$
+ * @version $Id:SqlServerObjCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
  */
-public class GenericConditionalTask extends BaseDbTask implements DbTask
+public abstract class JdbcConditionalTask extends BaseDbTask implements DbTask
 {
 
-    private String check;
-
     private String ddl;
+
+    private boolean not;
 
     /**
      * {@inheritDoc}
@@ -41,21 +44,15 @@ public class GenericConditionalTask extends BaseDbTask implements DbTask
     }
 
     /**
-     * {@inheritDoc}
+     * Sets the not.
+     * @param not the not to set
      */
-    public void setCheck(String name)
+    public void setNot(boolean not)
     {
-        this.check = name;
+        this.not = not;
     }
 
-    /**
-     * Returns the check.
-     * @return the check
-     */
-    public String getCheck()
-    {
-        return check;
-    }
+    public abstract boolean check(SimpleJdbcTemplate jdbcTemplate);
 
     /**
      * {@inheritDoc}
@@ -64,9 +61,9 @@ public class GenericConditionalTask extends BaseDbTask implements DbTask
     {
         SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
 
-        int result = jdbcTemplate.queryForInt(getCheck());
-        if (result == 0)
+        if (check(jdbcTemplate) ^ !not)
         {
+
             String[] ddls = StringUtils.split(ddl, ';');
             for (String statement : ddls)
             {
