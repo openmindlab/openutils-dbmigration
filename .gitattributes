@@ -29,4 +29,5 @@ src/main/java/it/openutils/migration/task/setup/GenericScriptBasedConditionalTas
 src/main/java/it/openutils/migration/task/setup/ScriptBasedUnconditionalTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/update/DbUpdate.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/update/ScriptBasedDbUpdate.java svneol=native#text/plain
+src/site/apt/index.apt svneol=native#text/plain
 src/site/site.xml -text

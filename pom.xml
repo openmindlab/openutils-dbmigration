@@ -8,7 +8,7 @@
     <relativePath>..</relativePath>
   </parent>
   <artifactId>openutils-dbmigration</artifactId>
-  <name>openutils db migration framework</name>
+  <name>openutils db migration</name>
   <version>2.0-SNAPSHOT</version>
   <description />
   <dependencies>
