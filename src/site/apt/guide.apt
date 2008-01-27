@@ -1,0 +1,310 @@
+                                 --------------------------
+                                      O p e n u t i l s
+                                 --------------------------
+                                     Fabrizio Giustina
+                                 --------------------------
+
+how to
+
+
+  Dbmigration è configurato in un file xml che trovate sotto src/main/resources dei progetti db
+  In questo file xml trovate le configurazioni base più una lista di task, che è la parte che dovrete andare ad editare.
+
++-------------------------------------+
+      ....
+      <property name="setupTasks">
+        <list>
+          <bean class="it.openutils.dbmigration.SqlServerTableCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/tables/BILLING_ADDRESS.sql</value>
+              </list>
+            </property>
+          </bean>
+          <bean class="it.openutils.dbmigration.SqlServerTableCreationTask">
+            ...
+          </bean>
+        </list>
++-------------------------------------+
+
+
+  Tutti i bean che sono presenti in questa lista implementano un'interfaccia DbTask che non fa nient'altro che definire l'esecuzione di un qualcosa su db. Partendo da questo sono stati creati una serie di task specifici per le nostre esigenze (e questo vuol dire che possono essere scritti altri task o modificati quelli attuale al momento in cui emerge qualche altra esigenza).
+
+  == I task fondamentali: creazione tabella ==
+
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerTableCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/tables/BILLING_ADDRESS.sql</value>
+                <value>classpath:/dbmigration/tables/CUSTOMER.sql</value>
+              </list>
+            </property>
+          </bean>
++-------------------------------------+
+
+  Il task '''it.openutils.dbmigration.SqlServerTableCreationTask''' si occupa della creazione di tabelle. Viene configurato un singolo creation task per ogni db e questo contiene l'elenco di tutte le tabelle che ci servono per quel db.
+  Gli script di creazione delle tabelle vanno messi in un file sql separato nel classpath (in sottodirectory dentro a src/main/resources/dbmigration*) e richiamati con la sintassi che vedete nell'esempio.
+  Quando il task parte utilizza il nome del file per verificare se sullo schema del db esiste già una tabella con il nome del file indicato. Se e solo se non esiste la tabella viene creata lanciando lo script relativo.
+
+  Importante:
+  * negli script non ci devono essere drop, vengono comunque lanciati solo se la tabella non esiste già.
+  * questi script devono essere sempre mantenuti aggiornati quando modificate le tabelle.
+  * l'ordine degli script '''conta'''. In generale gli oggetti che hanno dipendenze da altri oggetti del database devono trovarsi dopo quelli da cui dipendono, all'interno della lista indicata nel file xml. Può essere anche necessario creare più task per rispettare l'ordine corretto tra oggetti diversi.
+
+  == I task fondamentali: creazione altri oggetti del db ==
+
+  Può essere necessario creare anche altri oggetti nel database, e sono già disponibili una serie di script per gli oggetti fondamentali, elencati qui di seguito. Valgono le stesse regole usate per le tabelle: lo script controlla prima l'esistenza di un oggetto nel database con il nome uguale a quello del file dello script (case sensitive!), e se manca esegue lo script corrispondente.
+
+  Per tutti i seguenti script è possibile specificare un database di origine (sourceDb) e un database di destinazione (currentDb). Nel file xml spring sostituisce autamaticamente i placeholders con gli opportuni valori dei file di properties. Il bean si occupa successivamente di sostituire i placeholder ${sourceDb} e ${currentDb} '''all'interno dello script''' con i valori specificati, prima di eseguirlo.
+  Questo può servire in tutti i casi in cui serve referenziare tramite nomi fully qualified oggetti di database diversi all'interno degli script. Per il momento non è mai stato necessario referenziare più di due database contemporaneamente.
+
+  === Creazione di viste ===
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerViewCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/dbProdotto/views/TREE_LEVEL.sql</value>
+                <value>classpath:/dbmigration/dbProdotto/views/PROMO_DETTAGLI_V.sql</value>
+              </list>
+            </property>
+          </bean>
++-------------------------------------+
+
+  === Creazione di sinonimi ===
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerSynonymCreationTask">
+            <property name="sourceDb" value="${dbmigration.databaseName.dbProdotto}" />
+            <property name="currentDb" value="${dbmigration.databaseName.dbWeb}" />
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/dbWeb/synonyms/BRANI.sql</value>
+                <value>classpath:/dbmigration/dbWeb/synonyms/IVA.sql</value>
+                <value>classpath:/dbmigration/dbWeb/synonyms/LINGUA.sql</value>
+                <value>classpath:/dbmigration/dbWeb/synonyms/PAESE.sql</value>
+                <value>classpath:/dbmigration/dbWeb/synonyms/PERSONE.sql</value>
+                <value>classpath:/dbmigration/dbWeb/synonyms/RUOLO.sql</value>
+              </list>
+            </property>
+          </bean>
++-------------------------------------+
+
+  Per gli script dei sinonimi è '''necessario''' specificare il db in cui si trova l'oggetto di cui verrà creato il sinonimo (sourceDb), e il db di "destinazione" in cui verrà creato il sinonimo (currentDb). Nel file xml spring sostituisce autamaticamente i placeholders con gli opportuni valori dei file di properties. Il bean si occupa successivamente di sostituire i placeholder ${sourceDb} e ${currentDb} '''all'interno dello script''' con i valori specificati, prima di eseguirlo.
+  I sinonimi non possono avere dipendenze tra loro e di conseguenza l'ordine all'interno di questa lista è irrilevante, ma è l'unico caso.
+
+  === Creazione di trigger ===
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerTriggerCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/dbProdotto/triggers/IVA_INSERT.sql</value>
+                <value>classpath:/dbmigration/dbProdotto/triggers/IVA_UPDATE.sql</value>
+              </list>
+            </property>
+          </bean>
++-------------------------------------+
+
+  === Creazione di funzioni ===
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerFunctionCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/dbProdotto/functions/fn_recupera_persone.sql</value>
+                <value>classpath:/dbmigration/dbProdotto/functions/FN_Calc_Isbn_From_EAN.sql</value>
+              </list>
+            </property>
+          </bean>
++-------------------------------------+
+
+  == I task fondamentali: alter di una tabella ==
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerGenericAlterTask">
+            <property name="currentDb" value="${dbmigration.databaseName.dbUsers}" />
+            <property name="triggerValue" value="0" />
+            <property name="check">
+              <value>
+                <![CDATA[SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='SHIPPING_ADDRESS' AND COLUMN_NAME ='NOTES']]>
+              </value>
+            </property>
+            <property name="ddl">
+              <value>ALTER TABLE [dbo].[SHIPPING_ADDRESS] ADD [NOTES] varchar(400) NULL;</value>
+            </property>
+          </bean>
++-------------------------------------+
+
+  Il principio fondamentale di questo task è semplice: quando faccio una modifica ad una tabella verifico se tale modifica è già presente su db e se non è così la applico.
+  Questo task lavora esattamente così:
+  * esegue una query di check su db
+  * se il risultato di questa query è uguale ad un valore definito (triggerValue)...
+  * ... viene eseguito lo script per applicare l'alter
+
+  La logica deve essere la più semplice possibile: SE una colonna manca ALLORA creo la colonna. Questo sistema è risultato già in passato molto più semplice ed efficace rispetto ad utilizzare numeri di versione nel db etc.
+
+  Anche in questo caso è possibile (ma facoltativo) indicare i parametri sourceDb e currentDb, visto che il task è di alter generico e può riguardare qualsiasi oggetto del database. I placeholder ${sourceDb} e ${currentDb} all'interno del file di script verrà sostituito prima dell'esecuzione con il valore indicato. ${currentDb} per default è il database raggiungibile come default secondo il DataSource di spring in uso per il task, quindi non è praticamente mai necessario specificarlo.
+
+  È opportuno segnalare che è possibile utilizzare degli script sql al posto delle istruzioni scritte direttamente all'interno del file xml, specialmente se la parte di alter è piuttosto corposa. Per indicare gli script basta utilizzare le properties checkScript e ddlScript:
+  <pre>
+            <property name="checkScript">
+                <value>classpath:/dbmigration/dbProdotto/alter/checkAlter.sql</value>
+            </property>
+            <property name="ddlScript">
+                <value>classpath:/dbmigration/dbProdotto/alter/ddlAlter.sql</value>
+            </property>
+  </pre>
+  Si può indicare indifferentemente una condizione di check nell'xml e uno script per l'alter, o anche viceversa. Tuttavia quando si specifica una condizione direttamente nell'xml questa ha la precedenza sull'eventuale script, che viene pertanto ignorato.
+  In ogni caso, sia nell'xml che nello script, '''non''' è possibile eseguire istruzioni come IF EXIST. Anche per questo motivo esiste questo sistema di script condizionali.
+
+  == Esempio: se aggiungo una colonna ==
+
+
+  Partiamo dall'esempio di avere creato una tabella su db con questo task:
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerTableCreationTask">
+            <property name="scripts">
+              <list>
+                <value>classpath:/dbmigration/tables/PIPPO.sql</value>
+              </list>
+            </property>
+          </bean>
+
+
+
+
+  PIPPO.sql:
+  CREATE TABLE dbo.PIPPO (
+    ID_PIPPO	numeric(19,0) IDENTITY(1,1) NOT NULL,
+    TEST           	varchar(1000) NULL)
+  ;
+
++-------------------------------------+
+
+
+  Se ad un certo punto avete le necessità di aggiungere una colonna NEWCOL, visto che questa aggiunta dovrà essere trasparente sia per chi ha già la vecchia tabella su db sia per chi parte con un nuovo db dovete fare le seguenti cose:
+
+  * Modificare lo script iniziale:
+
++-------------------------------------+
+  PIPPO.sql:
+  CREATE TABLE dbo.PIPPO (
+    ID_PIPPO	numeric(19,0) IDENTITY(1,1) NOT NULL,
+    TEST            varchar(1000) NULL),
+    NEWCOL          varchar(1000) NULL)
+  ;
+
++-------------------------------------+
+
+
+  * Aggiungere un task di alter:
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerGenericAlterTask">
+            <property name="currentDb" value="${dbmigration.databaseName.dbUsers}" />
+            <property name="triggerValue" value="0" />
+            <property name="check">
+              <value>
+                 SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='PIPPO' AND COLUMN_NAME ='NEWCOL'
+              </value>
+            </property>
+            <property name="ddl">
+              <value>ALTER TABLE [dbo].[PIPPO] ADD [NEWCOL] varchar(1000) NULL;</value>
+            </property>
+          </bean>
++-------------------------------------+
+
+  Questo task esegue la query:
+
++-------------------------------------+
+  <property name="check">
+    <value>
+       SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='PIPPO' AND COLUMN_NAME ='NEWCOL'
+    </value>
+  </property>
++-------------------------------------+
+
+  che verifica se la colonna NEWCOL esiste già sullo schema interrogando le tabelle di sistema di sql server.
+
+  Se il risultato matcha quello configurato in
+
++-------------------------------------+
+    <property name="triggerValue" value="0" />
++-------------------------------------+
+
+  e cioè in questo caso se il count torna 0 e quindi la colonna non esiste viene applicato l'alter:
+
++-------------------------------------+
+    <property name="ddl">
+      <value>ALTER TABLE [dbo].[PIPPO] ADD [NEWCOL] varchar(1000) NULL;</value>
+    </property>
++-------------------------------------+
+
+
+  That's all, dovrebbe essere semplice.
+
+  == Esempio: aggiunta di un constraint ==
+
++-------------------------------------+
+  <bean class="it.openutils.dbmigration.SqlServerGenericAlterTask">
+    <property name="currentDb" value="${dbmigration.databaseName.dbUsers}" />
+    <property name="triggerValue" value="0" />
+    <property name="check">
+      <value>
+       <![CDATA[SELECT count(*) FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE WHERE TABLE_NAME='CUSTOMER' AND COLUMN_NAME ='USERNAME';]]>
+      </value>
+    </property>
+    <property name="ddl">
+       <value><![CDATA[ALTER TABLE [dbo].[CUSTOMER] ADD CONSTRAINT [UNIQUE_CUSTOMER_USERNAME] UNIQUE ([USERNAME])]]></value>
+    </property>
+  </bean>
++-------------------------------------+
+
+  == Esempio: Modifica della lunghezza di un campo esistente ==
+
++-------------------------------------+
+          <bean class="it.openutils.dbmigration.SqlServerGenericAlterTask">
+            <property name="currentDb" value="${dbmigration.databaseName.dbUsers}" />
+            <property name="triggerValue" value="1" />
+            <property name="check">
+              <value>
+                <![CDATA[select count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='BILLING_ADDRESS' AND COLUMN_NAME ='NAME' and character_maximum_length = 200]]>
+              </value>
+            </property>
+            <property name="ddl">
+              <value>
+                <![CDATA[
+  ALTER TABLE [dbo].[BILLING_ADDRESS] ALTER COLUMN [NAME] varchar(100) NULL;
+  ]]>
+              </value>
+            </property>
+          </bean>
++-------------------------------------+
+
+  == Esempio: query utili ==
+
+  Alcune query utili nelle condizioni di check:
+  * Verifica esistenza di una funzione
+   select count(*) from dbo.sysobjects where id = object_id('NOME_FUNZIONE') and xtype in (N'FN', N'IF', N'TF')
+  * Verifica esistenza di un sinonimo
+   select count(*) from dbo.sysobjects where id = object_id('NOME_SINONIMO') and xtype = N'SN'
+  * Verifica esistenza di una tabella
+   select count(*) from dbo.sysobjects where id = object_id('NOME_TABELLA') and OBJECTPROPERTY(id, N'IsUserTable') = 1
+  * Verifica esistenza di un trigger
+   select count(*) from dbo.sysobjects where id = object_id('NOME_TRIGGER') and OBJECTPROPERTY(id, N'IsTrigger') = 1
+  * Verifica esistenza di una vista
+   select count(*) from dbo.sysobjects where id = object_id('NOME_VISTA') and OBJECTPROPERTY(id, N'IsView') = 1
+  * Verifica esistenza di una colonna in una tabella
+   select count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='NOME_TABELLA' AND COLUMN_NAME ='NOME_COLONNA'
+  * Verifica se una colonna ammette valori NULL o meno:
+   select count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='NOME_TABELLA' AND COLUMN_NAME ='NOME_COLONNA' AND IS_NULLABLE = 'NO' (oppure = 'YES')
+
+  = Alcune note importanti =
+  * Mai fare drop/create delle tabelle, questi script verranno usati anche in produzione o su db con già dei dati, ricordatevelo.
+  * Mai aggiungere task e poi modificarli o rimuoverli: l'obiettivo di tutto è che ci sia una transizione automatica indipendentemente dallo stato in cui è il db. Se rimuovete o modificate delle parti probabilmente state facendo affidamento sul fatto che tutti abbiamo una certa versione del db stabile.
+  * Continuum è quello che certifica gli alter: sul db di continuum le modifiche possono essere applicate solo in modo automatico quindi tutte le volte che toccate gli script di db occhio alle mail di errore.
+  * Sulle viste è assolutamente concesso il drop/create visto che non contengono dati

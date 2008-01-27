@@ -225,6 +225,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      * @param updateStatement
      * @param selectStatement
      */
+    @SuppressWarnings("unchecked")
     private void processRecords(HSSFSheet sheet, List<String> columns, int[] types, String checkStatement,
         String insertStatement, String selectStatement, String updateStatement, DataSource dataSource, String tableName)
     {
@@ -351,8 +352,11 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 {
                     RowMapper rowMapper = new ColumnMapRowMapper();
                     Object[] selectParams = ArrayUtils.subarray(values.toArray(), 0, selectNum);
-                    List selectResult = jdbcTemplate.query(selectStatement, selectParams, rowMapper);
-                    Map<String, Object> fetchedColumns = (Map<String, Object>) selectResult.get(0);
+                    List<Map<String, Object>> selectResult = jdbcTemplate.query(
+                        selectStatement,
+                        selectParams,
+                        rowMapper);
+                    Map<String, Object> fetchedColumns = selectResult.get(0);
                     int i = 0;
                     boolean updateNeeded = false;
                     for (String columnName : columns)

@@ -22,7 +22,10 @@ package it.openutils.migration.task.setup;
 public abstract class BaseDbTask implements DbTask
 {
 
-    private String description;
+    /**
+     * An readable description for what this task is doing.
+     */
+    protected String description;
 
     /**
      * {@inheritDoc}

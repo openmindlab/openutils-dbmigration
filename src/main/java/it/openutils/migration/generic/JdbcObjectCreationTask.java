@@ -15,7 +15,7 @@
  */
 package it.openutils.migration.generic;
 
-import it.openutils.migration.task.setup.GenericScriptBasedConditionalTask;
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +28,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
@@ -41,17 +39,12 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author fgiust
  * @version $Id:SqlServerObjCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
  */
-public class JdbcObjectCreationTask extends GenericScriptBasedConditionalTask
+public abstract class JdbcObjectCreationTask extends GenericConditionalTask
 {
 
-    /**
-     * Logger.
-     */
-    protected Logger log = LoggerFactory.getLogger(getClass());
-
-    protected String objectType = "TABLE";
-
     protected String catalog;
+
+    abstract String getObjectType();
 
     /**
      * {@inheritDoc}
@@ -95,7 +88,7 @@ public class JdbcObjectCreationTask extends GenericScriptBasedConditionalTask
                 {
 
                     DatabaseMetaData dbMetadata = con.getMetaData();
-                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{objectType });
+                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType() });
                     boolean tableExists = rs.first();
                     rs.close();
 
@@ -128,7 +121,7 @@ public class JdbcObjectCreationTask extends GenericScriptBasedConditionalTask
 
                 String[] ddls = StringUtils.split(scriptContent, ";");
 
-                log.info("Creating new {} {}", objectType, tableName);
+                log.info("Creating new {} {}", getObjectType(), tableName);
 
                 for (String ddl : ddls)
                 {

@@ -6,6 +6,43 @@
 
 openutils-dbmigration
 
+ Dbmigration is a lightweight framework than can take care of creating and updating a db schema.
+
+ This frameworks simply allow to configure with Spring a list of scrips to be executed at the application startup before
+ setting up your persistence framework. This is similar to the auto ddl generation of hibernate, but has some advantages:
+
+ * alter scripts are more under control (hibernate ddl generation is not intended for production usage, dbmigration is)
+
+ * alter can be a lot more complex (for example on column addition/removal you can configure a script that can also take
+   care of data migration)
+
+ * scripts can operate on any db object, not only tables.
+
+ []
+
+
+ There are different reasons for using this frameworks:
+
+ * During development nobody should manually take care of applying db scripts or fix its own db due to changes introduced by other developers.
+
+ * All the script used in development will be used as is also in production, so they are usually deeply tested.
+
+ * You will never forgive to apply a db script next time you will have to release a new version of your application in production
+
+ []
+
+
+
+ A few links that talk about the reason for an update framework (not related to openutils-dbmigration):
+
+ {{{http://blogs.opensymphony.com/plightbo/2006/08/the_beauty_of_an_upgrade_frame.html}http://blogs.opensymphony.com/plightbo/2006/08/the_beauty_of_an_upgrade_frame.html}}
+
+ {{{http://www.infoq.com/news/upgrade-frameworks}http://www.infoq.com/news/upgrade-frameworks}}
+
+ {{{http://jroller.com/page/mrdon?entry=transparent_sql_schema_migration_with}http://jroller.com/page/mrdon?entry=transparent_sql_schema_migration_with}}
+
+ {{{http://www.talios.com/simple_database_migration_processing.htm}http://www.talios.com/simple_database_migration_processing.htm}}
+
 
 
 

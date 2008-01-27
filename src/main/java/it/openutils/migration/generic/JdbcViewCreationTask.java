@@ -22,5 +22,12 @@ package it.openutils.migration.generic;
 public class JdbcViewCreationTask extends JdbcObjectCreationTask
 {
 
-    protected String objectType = "VIEW";
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    String getObjectType()
+    {
+        return "VIEW";
+    }
 }

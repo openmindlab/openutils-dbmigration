@@ -1,5 +1,7 @@
 package it.openutils.migration.generic;
 
+import it.openutils.migration.task.setup.BaseConditionalTask;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -15,7 +17,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author fgiust
  * @version $Id: $
  */
-public class JdbcIfColumnExistsConditionalTask extends JdbcConditionalTask
+public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
 {
 
     private String column;

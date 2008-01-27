@@ -15,35 +15,35 @@
  */
 package it.openutils.migration.task.setup;
 
-import javax.sql.DataSource;
+import java.util.HashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
 /**
+ * A siple update task that executes a query and apply a DDL only if the query retuns a certain value (by default
+ * <code>0</code>)
  * @author fgiust
  * @version $Id$
  */
-public class GenericConditionalTask extends BaseDbTask implements DbTask
+public class GenericConditionalTask extends BaseConditionalTask
 {
 
-    private String check;
+    /**
+     * Query for the check condition.
+     */
+    protected String check;
 
-    private String ddl;
+    /**
+     * The value that will let the ddl script start. Default is <code>0</code>.
+     */
+    protected Integer triggerValue = 0;
 
     /**
      * {@inheritDoc}
      */
-    public void setDdl(String ddls)
-    {
-        this.ddl = ddls;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setCheck(String name)
+    public final void setCheck(String name)
     {
         this.check = name;
     }
@@ -58,24 +58,61 @@ public class GenericConditionalTask extends BaseDbTask implements DbTask
     }
 
     /**
+     * Sets the triggerValue.
+     * @param triggerValue the triggerValue to set
+     */
+    public final void setTriggerValue(Integer triggerValue)
+    {
+        this.triggerValue = triggerValue;
+    }
+
+    /**
      * {@inheritDoc}
      */
-    public void execute(DataSource dataSource)
+    @Override
+    public String getDescription()
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
-
-        int result = jdbcTemplate.queryForInt(getCheck());
-        if (result == 0)
+        String supDesc = super.getDescription();
+        if (StringUtils.isNotEmpty(supDesc) && !StringUtils.equals(supDesc, getClass().getName()))
         {
-            String[] ddls = StringUtils.split(ddl, ';');
-            for (String statement : ddls)
-            {
-                if (StringUtils.isNotBlank(statement))
-                {
-                    jdbcTemplate.update(statement);
-                }
-            }
+            return super.getDescription();
         }
+
+        if (StringUtils.isNotBlank(getCheck()))
+        {
+            return "Checking alter task condition: " + getCheck();
+        }
+
+        return getClass().getName();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean check(SimpleJdbcTemplate jdbcTemplate)
+    {
+        int result = jdbcTemplate.queryForInt(performSubstitution(getCheck()));
+        return result == triggerValue;
+    }
+
+    /**
+     * Sets the sourceDb.
+     * @param sourceDb the sourceDb to set
+     * @deprecated
+     */
+    @Deprecated
+    public final void setSourceDb(String sourceDb)
+    {
+        log.warn("sourceDb in "
+            + getClass().getName()
+            + " is deprecated, please use the more generic \"variables\" property");
+
+        if (this.variables == null)
+        {
+            variables = new HashMap<String, String>(1);
+        }
+        variables.put("sourceDb", sourceDb);
     }
 
 }

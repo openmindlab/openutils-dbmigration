@@ -22,5 +22,12 @@ package it.openutils.migration.generic;
 public class JdbcTableCreationTask extends JdbcObjectCreationTask
 {
 
-    protected String objectType = "TABLE";
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    String getObjectType()
+    {
+        return "TABLE";
+    }
 }

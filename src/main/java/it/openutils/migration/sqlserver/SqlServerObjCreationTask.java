@@ -15,7 +15,7 @@
  */
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericScriptBasedConditionalTask;
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,8 +24,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
@@ -34,13 +32,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author fgiust
  * @version $Id:SqlServerObjCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
  */
-public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
+public class SqlServerObjCreationTask extends GenericConditionalTask
 {
-
-    /**
-     * Logger.
-     */
-    private Logger log = LoggerFactory.getLogger(SqlServerObjCreationTask.class);
 
     /**
      * Query to check with standard objects' name.
@@ -51,11 +44,6 @@ public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
      * Query to check with full database objects' hierarchy.
      */
     private String qualifiedObjQuery;
-
-    /**
-     * The db with the objects, synonyms will point to this db.
-     */
-    private String sourceDb;
 
     /**
      * Returns the qualifiedObjQuery.
@@ -73,15 +61,6 @@ public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
     public void setQualifiedObjQuery(String qualifiedObjQuery)
     {
         this.qualifiedObjQuery = qualifiedObjQuery;
-    }
-
-    /**
-     * Sets the sourceDb.
-     * @param sourceDb the sourceDb to set
-     */
-    public void setSourceDb(String sourceDb)
-    {
-        this.sourceDb = sourceDb;
     }
 
     /**
@@ -159,11 +138,7 @@ public class SqlServerObjCreationTask extends GenericScriptBasedConditionalTask
                 {
                     if (StringUtils.isNotBlank(ddl))
                     {
-                        String ddlReplaced = ddl;
-                        ddlReplaced = StringUtils.isNotBlank(this.sourceDb) ? StringUtils.replace(
-                            ddlReplaced,
-                            "${sourceDb}",
-                            this.sourceDb) : ddlReplaced;
+                        String ddlReplaced = performSubstitution(ddl);
                         log.debug("Executing:\n{}", ddlReplaced);
                         jdbcTemplate.update(ddlReplaced);
                     }

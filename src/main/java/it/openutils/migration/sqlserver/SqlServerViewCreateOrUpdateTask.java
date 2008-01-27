@@ -15,7 +15,7 @@
  */
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericScriptBasedConditionalTask;
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,8 +25,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
@@ -35,27 +33,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author Danilo Ghirardelli
  * @version $Id: SqlServerViewCreateOrUpdateTask.java 391 2007-07-10 17:25:42Z fgiust $
  */
-public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedConditionalTask
+public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
 {
-
-    /**
-     * Logger.
-     */
-    private Logger log = LoggerFactory.getLogger(SqlServerObjCreationTask.class);
-
-    /**
-     * The db with the objects, synonyms will point to this db.
-     */
-    private String sourceDb;
-
-    /**
-     * Sets the sourceDb.
-     * @param sourceDb the sourceDb to set
-     */
-    public void setSourceDb(String sourceDb)
-    {
-        this.sourceDb = sourceDb;
-    }
 
     /**
      * {@inheritDoc}
@@ -162,8 +141,6 @@ public class SqlServerViewCreateOrUpdateTask extends GenericScriptBasedCondition
         {
             IOUtils.closeQuietly(is);
         }
-        return StringUtils.stripEnd(
-            StringUtils.trim(StringUtils.replace(scriptContent, "${sourceDb}", this.sourceDb)),
-            ";");
+        return StringUtils.stripEnd(StringUtils.trim(performSubstitution(scriptContent)), ";");
     }
 }
