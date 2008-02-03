@@ -52,7 +52,7 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
 
                 DatabaseMetaData dbMetadata = con.getMetaData();
                 ResultSet rs = dbMetadata.getColumns(catalog, schema, tableName, columnName);
-                boolean tableExists = rs.first();
+                boolean tableExists = rs.next();
                 rs.close();
 
                 return !tableExists;
