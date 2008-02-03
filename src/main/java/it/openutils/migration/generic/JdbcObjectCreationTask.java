@@ -89,7 +89,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
 
                     DatabaseMetaData dbMetadata = con.getMetaData();
                     ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType() });
-                    boolean tableExists = rs.first();
+                    boolean tableExists = rs.next();
                     rs.close();
 
                     return tableExists;
