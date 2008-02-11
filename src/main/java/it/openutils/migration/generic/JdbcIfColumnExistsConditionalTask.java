@@ -22,6 +22,28 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
 
     private String column;
 
+    protected String catalog;
+
+    protected String schema;
+
+    /**
+     * Sets the catalog.
+     * @param catalog the catalog to set
+     */
+    public void setCatalog(String catalog)
+    {
+        this.catalog = catalog;
+    }
+
+    /**
+     * Sets the schema.
+     * @param schema the schema to set
+     */
+    public void setSchema(String schema)
+    {
+        this.schema = schema;
+    }
+
     /**
      * Sets the column.
      * @param column the column to set
@@ -37,8 +59,6 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
     @Override
     public boolean check(SimpleJdbcTemplate jdbcTemplate)
     {
-        final String catalog = null;
-        final String schema = null;
 
         String columnTrim = StringUtils.trim(column);
 

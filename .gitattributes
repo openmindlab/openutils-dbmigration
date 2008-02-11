@@ -8,6 +8,7 @@ src/main/java/it/openutils/migration/generic/JdbcIfColumnExistsConditionalTask.j
 src/main/java/it/openutils/migration/generic/JdbcObjectCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcTableCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcViewCreationTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/oracle/OracleSequenceCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreateOrUpdateTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreationTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerGenericAlterTask.java -text
@@ -31,4 +32,5 @@ src/main/java/it/openutils/migration/task/update/DbUpdate.java svneol=native#tex
 src/main/java/it/openutils/migration/task/update/ScriptBasedDbUpdate.java svneol=native#text/plain
 src/site/apt/guide.apt svneol=native#text/plain
 src/site/apt/index.apt svneol=native#text/plain
+src/site/changes/changes.xml svneol=native#text/plain
 src/site/site.xml -text
