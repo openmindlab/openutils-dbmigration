@@ -1,3 +1,4 @@
+// temporary patch until a new openutils-dbmigration release is outF
 /*
  * Copyright Openmind http://www.openmindonline.it
  *
@@ -44,7 +45,27 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
 
     protected String catalog;
 
+    protected String schema;
+
     abstract String getObjectType();
+
+    /**
+     * Sets the catalog.
+     * @param catalog the catalog to set
+     */
+    public void setCatalog(String catalog)
+    {
+        this.catalog = catalog;
+    }
+
+    /**
+     * Sets the schema.
+     * @param schema the schema to set
+     */
+    public void setSchema(String schema)
+    {
+        this.schema = schema;
+    }
 
     /**
      * {@inheritDoc}
@@ -65,7 +86,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
 
             String fqTableName = this.objectNameFromFileName(script);
             String tmptableName = null;
-            String tmpschema = null;
+            String tmpschema = schema;
 
             if (StringUtils.contains(fqTableName, "."))
             {
@@ -88,7 +109,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
                 {
 
                     DatabaseMetaData dbMetadata = con.getMetaData();
-                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType() });
+                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType()});
                     boolean tableExists = rs.next();
                     rs.close();
 
@@ -131,6 +152,10 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
                         jdbcTemplate.update(ddl);
                     }
                 }
+            }
+            else
+            {
+                log.debug("{} {} already existing", getObjectType(), tableName);
             }
         }
     }
