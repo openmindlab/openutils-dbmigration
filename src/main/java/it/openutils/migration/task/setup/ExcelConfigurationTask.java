@@ -21,7 +21,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -65,10 +68,20 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
     private Map<String, ExcelConfigurationTask.QueryConfig> config;
 
     /**
+     * Enable this task.
+     */
+    private boolean enabled = true;
+
+    /**
      * If true, when a record already exists and an updated query is defined it will be updated. Set it to false to only
      * insert new records.
      */
     private boolean updateEnabled = true;
+
+    /**
+     * Date format for ISO dates
+     */
+    private SimpleDateFormat isodateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 
     /**
      * Sets the script.
@@ -89,6 +102,15 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
     }
 
     /**
+     * Sets the enabled.
+     * @param enabled the enabled to set
+     */
+    public void setEnabled(boolean enabled)
+    {
+        this.enabled = enabled;
+    }
+
+    /**
      * Sets the updateEnabled.
      * @param updateEnabled the updateEnabled to set
      */
@@ -102,6 +124,11 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      */
     public void execute(DataSource dataSource)
     {
+        if (!enabled)
+        {
+            return;
+        }
+
         if (script == null || !script.exists())
         {
             log.error("Unable to execute db task \"{}\", script \"{}\" not found.", getDescription(), script);
@@ -123,7 +150,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 QueryConfig conf = config.get(tableName);
                 if (conf == null)
                 {
-                    log.error("Unable to handle table {}", tableName);
+                    suggestSheetConfig(sheet, tableName, conf, dataSource);
                     continue;
                 }
                 processSheet(sheet, tableName, conf, dataSource);
@@ -140,6 +167,85 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             IOUtils.closeQuietly(is);
         }
 
+    }
+
+    public void suggestSheetConfig(HSSFSheet sheet, final String tableName, QueryConfig con, DataSource dataSource)
+    {
+        log.error("Unable to handle table {}", tableName);
+
+        if (!log.isDebugEnabled())
+        {
+            return;
+        }
+
+        final List<String> columns = new ArrayList<String>();
+
+        HSSFRow row = sheet.getRow(0);
+        for (short k = 0; k < row.getLastCellNum(); k++)
+        {
+            HSSFCell cell = row.getCell(k);
+            if (cell != null)
+            {
+                String columnName = cell.getStringCellValue();
+                if (StringUtils.isNotBlank(columnName))
+                {
+                    columns.add(StringUtils.trim(columnName));
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        if (columns.isEmpty())
+        {
+            return;
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("        <entry key=\"");
+        buffer.append(tableName);
+        buffer.append("\">\n"
+            + "          <bean class=\"it.openutils.migration.task.setup.ExcelConfigurationTask$QueryConfig\">\n"
+            + "            <property name=\"checkQuery\">\n"
+            + "              <value>");
+
+        String initialCol = columns.get(0);
+        buffer.append("select count(" + initialCol + ") from " + tableName + " where " + initialCol + " = ?");
+        buffer.append("</value>\n"
+            + "            </property>\n"
+            + "            <property name=\"insertQuery\">\n"
+            + "              <value>");
+
+        buffer.append("INSERT INTO ");
+        buffer.append(tableName);
+        buffer.append(" (");
+
+        StringBuffer colNames = new StringBuffer();
+        StringBuffer parNames = new StringBuffer();
+
+        for (Iterator<String> iterator = columns.iterator(); iterator.hasNext();)
+        {
+            String string = iterator.next();
+            colNames.append(string);
+            parNames.append("?");
+            if (iterator.hasNext())
+            {
+                colNames.append(", ");
+                parNames.append(", ");
+            }
+
+        }
+
+        buffer.append(colNames);
+        buffer.append(") VALUES (");
+        buffer.append(parNames);
+        buffer.append(")");
+        buffer.append("</value>\n" + "            </property>\n" + "          </bean>\n" + "        </entry>");
+
+        log.debug("You can use the following suggested config as template:\n{}", buffer.toString());
     }
 
     /**
@@ -312,6 +418,40 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             {
                 Object[] insertParams = ArrayUtils.subarray(values.toArray(), 0, insertNum);
                 int[] insertTypes = ArrayUtils.subarray(types, 0, insertNum);
+
+                // empty strings must be converted to nulls if the columns is numeric or date
+                // Cannot convert class java.lang.String to SQL type requested due to java.lang.NumberFormatException -
+                // For input string: ""
+                for (int j = 0; j < insertTypes.length; j++)
+                {
+                    int tip = insertTypes[j];
+                    if (tip != Types.CHAR
+                        && tip != Types.LONGNVARCHAR
+                        && tip != Types.LONGVARCHAR
+                        && tip != Types.NCHAR
+                        && tip != Types.NVARCHAR
+                        && tip != Types.VARCHAR
+                        && "".equals(insertParams[j]))
+                    {
+                        insertParams[j] = null;
+                    }
+
+                    if (tip == Types.DATE || tip == Types.TIME || tip == Types.TIMESTAMP && insertParams[j] != null)
+                    {
+                        synchronized (isodateformat)
+                        {
+                            try
+                            {
+                                insertParams[j] = isodateformat.parse((String) insertParams[j]);
+                            }
+                            catch (ParseException e)
+                            {
+                                log.debug("Cannot parse date \"{}\"", insertParams[j]);
+                            }
+                        }
+                    }
+                }
+
                 if (log.isDebugEnabled())
                 {
                     log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
@@ -323,7 +463,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                     log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
                         tableName,
                         insertParams.length,
-                        insertTypes.length });
+                        insertTypes.length});
                 }
 
                 try
@@ -340,7 +480,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                                 rowNum + 1,
                                 insertStatement,
                                 ArrayUtils.toString(insertParams),
-                                bsge.getMessage() });
+                                bsge.getMessage()});
                     continue;
                 }
             }
@@ -391,7 +531,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                             log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
                                 tableName,
                                 updateParams.length,
-                                insertTypes.length });
+                                insertTypes.length});
                         }
 
                         try
@@ -416,7 +556,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                                         rowNum + 1,
                                         insertStatement,
                                         ArrayUtils.toString(updateParams),
-                                        bsge.getMessage() });
+                                        bsge.getMessage()});
                             continue;
                         }
                     }

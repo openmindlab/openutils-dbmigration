@@ -45,6 +45,8 @@ public class OracleSequenceCreationTask implements DbTask
 
     private String creationQuery;
 
+    private String dropQuery;
+
     private String selectUserSequences;
 
     private String selectAllSequences;
@@ -67,6 +69,15 @@ public class OracleSequenceCreationTask implements DbTask
     public void setCreationQuery(String creationQuery)
     {
         this.creationQuery = creationQuery;
+    }
+
+    /**
+     * Sets the dropQuery.
+     * @param dropQuery the dropQuery to set
+     */
+    public void setDropQuery(String dropQuery)
+    {
+        this.dropQuery = dropQuery;
     }
 
     /**
