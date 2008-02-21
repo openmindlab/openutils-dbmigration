@@ -9,6 +9,7 @@ src/main/java/it/openutils/migration/generic/JdbcObjectCreationTask.java svneol=
 src/main/java/it/openutils/migration/generic/JdbcTableCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcViewCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/oracle/OracleSequenceCreationTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/oracle/OracleViewCreateOrUpdateTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreateOrUpdateTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/sqlserver/SqlServerFunctionCreationTask.java -text
 src/main/java/it/openutils/migration/sqlserver/SqlServerGenericAlterTask.java -text
