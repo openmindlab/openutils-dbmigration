@@ -1,4 +1,3 @@
-// temporary patch until a new openutils-dbmigration release is outF
 /*
  * Copyright Openmind http://www.openmindonline.it
  *
@@ -43,8 +42,14 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 public abstract class JdbcObjectCreationTask extends GenericConditionalTask
 {
 
+    /**
+     * Catalog.
+     */
     protected String catalog;
 
+    /**
+     * Schema.
+     */
     protected String schema;
 
     abstract String getObjectType();
@@ -109,7 +114,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
                 {
 
                     DatabaseMetaData dbMetadata = con.getMetaData();
-                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType()});
+                    ResultSet rs = dbMetadata.getTables(catalog, schema, tableName, new String[]{getObjectType() });
                     boolean tableExists = rs.next();
                     rs.close();
 

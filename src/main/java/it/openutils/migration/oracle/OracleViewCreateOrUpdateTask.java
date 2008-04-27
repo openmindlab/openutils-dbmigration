@@ -1,3 +1,18 @@
+/*
+ * Copyright Openmind http://www.openmindonline.it
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.openutils.migration.oracle;
 
 import it.openutils.migration.task.setup.DbTask;
@@ -44,7 +59,7 @@ public class OracleViewCreateOrUpdateTask implements DbTask
     /**
      * Script list to execute
      */
-    protected List<Resource> scripts;
+    private List<Resource> scripts;
 
     /**
      * Query to verify view existence
@@ -61,6 +76,31 @@ public class OracleViewCreateOrUpdateTask implements DbTask
      */
     private String dropView;
 
+    public String getDescription()
+    {
+        return "Checking Views";
+    }
+
+    public void setScripts(List<Resource> scripts)
+    {
+        this.scripts = scripts;
+    }
+
+    public void setSelectUserViewExistence(String selectUserViewExistence)
+    {
+        this.selectUserViewExistence = selectUserViewExistence;
+    }
+
+    public void setSelectUserViewDDL(String selectUserViewDDL)
+    {
+        this.selectUserViewDDL = selectUserViewDDL;
+    }
+
+    public void setDropView(String dropView)
+    {
+        this.dropView = dropView;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -72,7 +112,7 @@ public class OracleViewCreateOrUpdateTask implements DbTask
         {
             String viewName = this.objectNameFromFileName(script);
 
-            int result = jdbcTemplate.queryForInt(getSelectUserViewExistence(), viewName);
+            int result = jdbcTemplate.queryForInt(this.selectUserViewExistence, viewName);
 
             String scriptContent = readFully(script);
 
@@ -96,17 +136,17 @@ public class OracleViewCreateOrUpdateTask implements DbTask
                 }
 
                 String previousDDl = (String) jdbcTemplate.getJdbcOperations().queryForObject(
-                    getSelectUserViewDDL(),
-                    new Object[]{viewName},
+                    this.selectUserViewDDL,
+                    new Object[]{viewName },
                     String.class);
 
                 if (!StringUtils.equals(previousDDl.trim(), scriptBody.trim()))
                 {
                     log.info(
                         "Previous definition of view {} differs from actual. Dropping and recreating view",
-                        new Object[]{viewName});
+                        new Object[]{viewName });
 
-                    jdbcTemplate.update(MessageFormat.format(getDropView(), new Object[]{viewName}));
+                    jdbcTemplate.update(MessageFormat.format(this.dropView, new Object[]{viewName }));
 
                     createView(jdbcTemplate, scriptContent);
                 }
@@ -116,21 +156,12 @@ public class OracleViewCreateOrUpdateTask implements DbTask
     }
 
     /**
-     * @param script The script resource
-     * @return The script name
-     */
-    protected String objectNameFromFileName(Resource script)
-    {
-        return StringUtils.substringBeforeLast(script.getFilename(), ".");
-    }
-
-    /**
      * @param scriptContent
      * @return
      */
     private String extractViewBody(String scriptContent)
     {
-        Pattern pattern = Pattern.compile(".*\\s+AS\\s+(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern pattern = Pattern.compile(".*?\\s+AS\\s+(.*);", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         Matcher matcher = pattern.matcher(scriptContent);
         boolean bodyFound = matcher.find();
         if (bodyFound)
@@ -161,6 +192,15 @@ public class OracleViewCreateOrUpdateTask implements DbTask
                 jdbcTemplate.update(ddl);
             }
         }
+    }
+
+    /**
+     * @param script The script resource
+     * @return The script name
+     */
+    protected String objectNameFromFileName(Resource script)
+    {
+        return StringUtils.substringBeforeLast(script.getFilename(), ".");
     }
 
     /**
@@ -195,48 +235,4 @@ public class OracleViewCreateOrUpdateTask implements DbTask
         return scriptContent;
     }
 
-    public String getDescription()
-    {
-        return "Checking Views";
-    }
-
-    public List<Resource> getScripts()
-    {
-        return scripts;
-    }
-
-    public void setScripts(List<Resource> scripts)
-    {
-        this.scripts = scripts;
-    }
-
-    public String getSelectUserViewExistence()
-    {
-        return selectUserViewExistence;
-    }
-
-    public void setSelectUserViewExistence(String selectUserViewExistence)
-    {
-        this.selectUserViewExistence = selectUserViewExistence;
-    }
-
-    public String getSelectUserViewDDL()
-    {
-        return selectUserViewDDL;
-    }
-
-    public void setSelectUserViewDDL(String selectUserViewDDL)
-    {
-        this.selectUserViewDDL = selectUserViewDDL;
-    }
-
-    public String getDropView()
-    {
-        return dropView;
-    }
-
-    public void setDropView(String dropView)
-    {
-        this.dropView = dropView;
-    }
 }

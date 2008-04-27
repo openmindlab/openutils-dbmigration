@@ -8,21 +8,26 @@
     <author email="fgiust(at)users.sourceforge.net">Fabrizio Giustina</author>
   </properties>
   <body>
+    <release version="2.0.4" date="in svn" description="2.0.4">
+      <action type="add" dev="fgiust">New jdbc generic tasks: IfColumnIsNotIdentityConditionalTask,
+        JdbcIfColumnIsNotNullableConditionalTask, JdbcIfForeignKeyExistsConditionalTask</action>
+      <action type="add" dev="fgiust">New oracle specific tasks: OraclePackageCreationTask,
+        OracleStoredProcedureCallTask</action>
+    </release>
     <release version="2.0.3" date="2008-02-21" description="2.0.3">
       <action type="add" dev="fgiust">New it.openutils.migration.oracle.OracleViewCreateOrUpdateTask</action>
-      <action type="fix" dev="fgiust">Fix handling of empty strings for numeric types in ExcelConfigurationTask</action>
-      <action type="update" dev="fgiust">
-        Dates are now always processed using an ISO8601 date format in ExcelConfigurationTask (previously the parsing
-        was left to the jdbc driver, leading to different results with different drivers)
+      <action type="fix" dev="fgiust">Fix handling of empty strings for numeric types in ExcelConfigurationTask
       </action>
+      <action type="update" dev="fgiust"> Dates are now always processed using an ISO8601 date format in
+        ExcelConfigurationTask (previously the parsing was left to the jdbc driver, leading to different results with
+        different drivers)</action>
       <action type="add" dev="fgiust">Added a new "enabled" flag in ExcelConfigurationTask</action>
     </release>
     <release version="2.0.2" date="2008-02-11" description="2.0.2">
       <action type="add" dev="fgiust">New it.openutils.migration.oracle.OracleSequenceCreationTask</action>
-      <action type="update" dev="fgiust">
-        Added ability to set a schema name in it.openutils.migration.generic.JdbcObjectCreationTask and
-        it.openutils.migration.generic.JdbcIfColumnExistsConditionalTask
-      </action>
+      <action type="update" dev="fgiust"> Added ability to set a schema name in
+        it.openutils.migration.generic.JdbcObjectCreationTask and
+        it.openutils.migration.generic.JdbcIfColumnExistsConditionalTask</action>
     </release>
   </body>
 </document>

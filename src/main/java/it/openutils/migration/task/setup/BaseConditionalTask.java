@@ -224,7 +224,7 @@ public abstract class BaseConditionalTask extends BaseDbTask
      * @param jdbcTemplate
      * @param scriptContent
      */
-    private void executeSingle(SimpleJdbcTemplate jdbcTemplate, String scriptContent)
+    protected void executeSingle(SimpleJdbcTemplate jdbcTemplate, String scriptContent)
     {
         String[] ddls = StringUtils.split(performSubstitution(scriptContent), ';');
         for (String statement : ddls)

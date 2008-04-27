@@ -29,27 +29,18 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
 /**
- * Task that executes if a given column exists.
+ * Task that executes if a named foreign key eists.
  * @author fgiust
- * @version $Id: $
+ * @version $Id$
  */
-public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
+public class JdbcIfForeignKeyExistsConditionalTask extends BaseConditionalTask
 {
 
-    /**
-     * Column name.
-     */
-    protected String column;
+    private String fkName;
 
-    /**
-     * Catalog.
-     */
-    protected String catalog;
+    private String catalog;
 
-    /**
-     * Schema.
-     */
-    protected String schema;
+    private String schema;
 
     /**
      * Sets the catalog.
@@ -70,12 +61,12 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
     }
 
     /**
-     * Sets the column.
-     * @param column the column to set
+     * Sets the fkName (TABLE.FKNAME).
+     * @param fkName the fkName to set
      */
-    public void setColumn(String column)
+    public void setFkName(String fkName)
     {
-        this.column = column;
+        this.fkName = fkName;
     }
 
     /**
@@ -85,22 +76,28 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
     public boolean check(SimpleJdbcTemplate jdbcTemplate)
     {
 
-        String columnTrim = StringUtils.trim(column);
+        String fkNameTrim = StringUtils.trim(fkName);
 
-        final String tableName = StringUtils.substringBefore(columnTrim, ".");
-        final String columnName = StringUtils.substringAfter(columnTrim, ".");
+        final String tableName = StringUtils.substringBefore(fkNameTrim, ".");
+        final String fkName = StringUtils.substringAfter(fkNameTrim, ".");
         return (Boolean) jdbcTemplate.getJdbcOperations().execute(new ConnectionCallback()
         {
 
             public Object doInConnection(Connection con) throws SQLException, DataAccessException
             {
-
+                boolean fkExists = false;
                 DatabaseMetaData dbMetadata = con.getMetaData();
-                ResultSet rs = dbMetadata.getColumns(catalog, schema, tableName, columnName);
-                boolean tableExists = rs.next();
+                ResultSet rs = dbMetadata.getExportedKeys(catalog, schema, tableName);
+                while (rs.next())
+                {
+                    if (StringUtils.equals(fkName, rs.getString("FK_NAME")))
+                    {
+                        fkExists = true;
+                    }
+                }
                 rs.close();
 
-                return !tableExists;
+                return !fkExists;
             }
         });
     }

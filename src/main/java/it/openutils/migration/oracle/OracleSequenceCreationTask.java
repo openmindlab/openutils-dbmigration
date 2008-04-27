@@ -43,15 +43,13 @@ public class OracleSequenceCreationTask implements DbTask
 
     private List<String> sequences;
 
-    private String creationQuery;
+    private String creationQuery = "CREATE SEQUENCE {0} INCREMENT BY 1 START WITH {1} MAXVALUE 1E28 MINVALUE 1 NOCACHE NOCYCLE ORDER";
 
-    private String dropQuery;
+    private String selectUserSequences = "SELECT COUNT(*) FROM USER_SEQUENCES WHERE SEQUENCE_NAME = ?";
 
-    private String selectUserSequences;
+    private String selectAllSequences = "SELECT COUNT(*) FROM ALL_SEQUENCES WHERE SEQUENCE_NAME = ? AND SEQUENCE_OWNER = ?";
 
-    private String selectAllSequences;
-
-    private int startsWith;
+    private int startsWith = 1;
 
     /**
      * Sets the sequences.
@@ -69,15 +67,6 @@ public class OracleSequenceCreationTask implements DbTask
     public void setCreationQuery(String creationQuery)
     {
         this.creationQuery = creationQuery;
-    }
-
-    /**
-     * Sets the dropQuery.
-     * @param dropQuery the dropQuery to set
-     */
-    public void setDropQuery(String dropQuery)
-    {
-        this.dropQuery = dropQuery;
     }
 
     /**
@@ -128,7 +117,7 @@ public class OracleSequenceCreationTask implements DbTask
             if (StringUtils.contains(sequenceName, "."))
             {
                 String[] tokens = StringUtils.split(sequenceName, ".");
-                result = jdbcTemplate.queryForInt(selectAllSequences, new Object[]{tokens[1], tokens[0]});
+                result = jdbcTemplate.queryForInt(selectAllSequences, new Object[]{tokens[1], tokens[0] });
             }
             else
             {
@@ -138,7 +127,9 @@ public class OracleSequenceCreationTask implements DbTask
             if (result <= 0)
             {
                 log.info("Creating new {}", sequenceName);
-                jdbcTemplate.update(MessageFormat.format(creationQuery, new Object[]{sequenceName, startsWith}));
+                jdbcTemplate.update(MessageFormat.format(creationQuery, new Object[]{
+                    sequenceName,
+                    String.valueOf(startsWith) }));
             }
         }
     }
