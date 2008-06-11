@@ -177,7 +177,7 @@ public abstract class BaseConditionalTask extends BaseDbTask
     {
         SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
 
-        if (check(jdbcTemplate) ^ !not)
+        if (check(jdbcTemplate) ^ not)
         {
             log.info("Executing Alter Task: {}", getDescription());
 

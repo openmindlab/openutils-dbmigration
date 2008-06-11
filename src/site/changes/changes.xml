@@ -9,6 +9,9 @@
   </properties>
   <body>
     <release version="2.0.4" date="in svn" description="2.0.4">
+      <action type="fix" dev="fgiust"> Warning: fixed the usage of the "not" condition in
+        it.openutils.migration.task.setup.BaseConditionalTask that previosly caused unexpected (inverted) results. You
+        may need to review your conditional tasks in order to check if the condition is still valid!</action>
       <action type="add" dev="fgiust">New jdbc generic tasks: IfColumnIsNotIdentityConditionalTask,
         JdbcIfColumnIsNotNullableConditionalTask, JdbcIfForeignKeyExistsConditionalTask</action>
       <action type="add" dev="fgiust">New oracle specific tasks: OraclePackageCreationTask,
