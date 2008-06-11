@@ -100,7 +100,7 @@ public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
                 boolean tableExists = rs.next();
                 rs.close();
 
-                return !tableExists;
+                return tableExists;
             }
         });
     }

@@ -110,7 +110,7 @@ public abstract class JdbcColumnBasedConditionalTask extends BaseConditionalTask
                     {
                         params.put(rsmeta.getColumnName(j), rs.getObject(j));
                     }
-                    conditionMet = !checkColumnMetadata(params);
+                    conditionMet = checkColumnMetadata(params);
                 }
                 rs.close();
                 return conditionMet;

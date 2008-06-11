@@ -97,7 +97,7 @@ public class JdbcIfForeignKeyExistsConditionalTask extends BaseConditionalTask
                 }
                 rs.close();
 
-                return !fkExists;
+                return fkExists;
             }
         });
     }
