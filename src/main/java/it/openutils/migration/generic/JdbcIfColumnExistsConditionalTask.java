@@ -31,7 +31,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 /**
  * Task that executes if a given column exists.
  * @author fgiust
- * @version $Id: $
+ * @version $Id$
  */
 public class JdbcIfColumnExistsConditionalTask extends BaseConditionalTask
 {
