@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--
+  <!--
   "type" attribute can be: add, remove, update or fix.
 -->
 <document>
@@ -8,19 +8,21 @@
     <author email="fgiust(at)users.sourceforge.net">Fabrizio Giustina</author>
   </properties>
   <body>
+    <release version="2.0.5" date="2009-03-29" description="">
+      <action type="update" dev="fgiust">Updated slf4j, spring and poi dependencies</action>
+    </release>
     <release version="2.0.4" date="2008-06-11" description="2.0.4">
       <action type="fix" dev="fgiust"> Warning: fixed the usage of the "not" condition in
         it.openutils.migration.task.setup.BaseConditionalTask that previosly caused unexpected (inverted) results. You
         may need to review your conditional tasks in order to check if the condition is still valid!</action>
       <action type="add" dev="fgiust">New jdbc generic tasks: IfColumnIsNotIdentityConditionalTask,
         JdbcIfColumnIsNotNullableConditionalTask, JdbcIfForeignKeyExistsConditionalTask</action>
-      <action type="add" dev="fgiust">New oracle specific tasks: OraclePackageCreationTask,
-        OracleStoredProcedureCallTask</action>
+      <action type="add" dev="fgiust">New oracle specific tasks: OraclePackageCreationTask, OracleStoredProcedureCallTask
+      </action>
     </release>
     <release version="2.0.3" date="2008-02-21" description="2.0.3">
       <action type="add" dev="fgiust">New it.openutils.migration.oracle.OracleViewCreateOrUpdateTask</action>
-      <action type="fix" dev="fgiust">Fix handling of empty strings for numeric types in ExcelConfigurationTask
-      </action>
+      <action type="fix" dev="fgiust">Fix handling of empty strings for numeric types in ExcelConfigurationTask</action>
       <action type="update" dev="fgiust"> Dates are now always processed using an ISO8601 date format in
         ExcelConfigurationTask (previously the parsing was left to the jdbc driver, leading to different results with
         different drivers)</action>
