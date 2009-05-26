@@ -8,6 +8,10 @@
     <author email="fgiust(at)users.sourceforge.net">Fabrizio Giustina</author>
   </properties>
   <body>
+    <release version="2.0.6" date="" description="">
+      <action type="fix" dev="dghirardelli">Used colums types from metadata even for the check query (for PostGreSql compatibility)</action>
+      <action type="fix" dev="dghirardelli">Really skipping sheet if the log says so</action>
+    </release>
     <release version="2.0.5" date="2009-03-29" description="">
       <action type="update" dev="fgiust">Updated slf4j, spring and poi dependencies</action>
     </release>

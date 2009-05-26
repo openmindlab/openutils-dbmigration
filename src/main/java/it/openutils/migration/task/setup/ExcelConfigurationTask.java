@@ -145,7 +145,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             for (int j = 0; j < sheetNums; j++)
             {
                 HSSFSheet sheet = hssfworkbook.getSheetAt(j);
-                String tableName = hssfworkbook.getSheetName(j);
+                String tableName = StringUtils.trim(hssfworkbook.getSheetName(j));
 
                 QueryConfig conf = config.get(tableName);
                 if (conf == null)
@@ -301,26 +301,28 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             }
         });
 
-        if (!result)
+        if (result)
+        {
+            String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
+            String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
+            String selectStatement = StringUtils.remove(StringUtils.trim(con.getSelectQuery()), "\n");
+            String updateStatement = StringUtils.remove(StringUtils.trim(con.getUpdateQuery()), "\n");
+
+            processRecords(
+                sheet,
+                columns,
+                ArrayUtils.toPrimitive(types.toArray(new Integer[types.size()]), Types.NULL),
+                checkStatement,
+                insertStatement,
+                selectStatement,
+                updateStatement,
+                dataSource,
+                tableName);
+        }
+        else
         {
             log.warn("Skipping sheet {} ", tableName);
         }
-
-        String checkStatement = StringUtils.remove(StringUtils.trim(con.getCheckQuery()), "\n");
-        String insertStatement = StringUtils.remove(StringUtils.trim(con.getInsertQuery()), "\n");
-        String selectStatement = StringUtils.remove(StringUtils.trim(con.getSelectQuery()), "\n");
-        String updateStatement = StringUtils.remove(StringUtils.trim(con.getUpdateQuery()), "\n");
-
-        processRecords(
-            sheet,
-            columns,
-            ArrayUtils.toPrimitive(types.toArray(new Integer[types.size()]), Types.NULL),
-            checkStatement,
-            insertStatement,
-            selectStatement,
-            updateStatement,
-            dataSource,
-            tableName);
     }
 
     /**
@@ -394,6 +396,8 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             }
 
             Object[] checkParams = ArrayUtils.subarray(values.toArray(), 0, checkNum);
+            // We have types from column analysis, so we can use them also in check query.
+            int[] checkParamTypes = ArrayUtils.subarray(types, 0, checkNum);
             for (int i = 0; i < checkParams.length; i++)
             {
                 if (StringUtils.isEmpty((String) checkParams[i]))
@@ -405,7 +409,7 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             int existing;
             try
             {
-                existing = jdbcTemplate.queryForInt(checkStatement, checkParams);
+                existing = jdbcTemplate.queryForInt(checkStatement, checkParams, checkParamTypes);
             }
             catch (BadSqlGrammarException bsge)
             {
