@@ -8,7 +8,7 @@
     <author email="fgiust(at)users.sourceforge.net">Fabrizio Giustina</author>
   </properties>
   <body>
-    <release version="2.0.6" date="" description="">
+    <release version="2.0.6" date="2009-06-05" description="">
       <action type="fix" dev="dghirardelli">Used colums types from metadata even for the check query (for PostGreSql compatibility)</action>
       <action type="fix" dev="dghirardelli">Really skipping sheet if the log says so</action>
     </release>
