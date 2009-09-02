@@ -9,6 +9,7 @@ src/main/java/it/openutils/migration/generic/JdbcColumnBasedConditionalTask.java
 src/main/java/it/openutils/migration/generic/JdbcIfColumnExistsConditionalTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcIfColumnIsNotNullableConditionalTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcIfForeignKeyExistsConditionalTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/generic/JdbcIfTableExistsConditionalTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcObjectCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcTableCreationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/generic/JdbcViewCreationTask.java svneol=native#text/plain
