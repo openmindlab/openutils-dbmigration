@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>net.sourceforge.openutils</groupId>
@@ -8,8 +7,24 @@
   </parent>
   <artifactId>openutils-dbmigration</artifactId>
   <name>openutils db migration</name>
-  <version>2.0.7-SNAPSHOT</version>
-  <description />
+  <description>
+  <![CDATA[
+DB Migration is a framework based on Spring for handling automatic db schema updates.
+With DBMigration you can bundle upgrade scripts in you application. Its purpose
+is to manage db updates consistently both for development than for production releases.
+    ]]></description>
+  <version>2.0.7</version>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <url>http://lab.openmindonline.it/lab/products/dbmigration.html</url>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://lab.openmindonline.it/jira/browse/DBMIGRATION</url>
+  </issueManagement>
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -94,7 +109,34 @@
       </exclusions>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>bundle</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>${basedir}/src/main/assembly/assembly-bundle.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <properties>
     <spring.version>2.5.6</spring.version>
   </properties>
+
+  <scm>
+    <connection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-2.0.7</connection>
+    <developerConnection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-2.0.7</developerConnection>
+    <url>http://openutils.svn.sourceforge.net/viewcvs.cgi/openutils/tags/openutils-dbmigration-2.0.7</url>
+  </scm>
 </project>
