@@ -16,10 +16,6 @@
     <head>
       <link rel="icon" href="images/favicon.ico" />
     </head>
-    <breadcrumbs>
-      <item name="openutils" href="http://openutils.sourceforge.net/" />
-      <item name="openutils-dbmigration" href="http://openutils.sourceforge.net/openutils-dbmigration" />
-    </breadcrumbs>
     <menu name="openutils dbmigration">
       <item name="Usage" href="index.html"></item>
     </menu>
