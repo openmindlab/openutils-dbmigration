@@ -24,8 +24,8 @@ The preferred way to add ${pom.name} to your project is using maven.
 You can declare the following dependency in your pom.xml:
 
     <dependency>
-      <groupId>${pom.artifactId}</groupId>
-      <artifactId>${pom.groupId}</artifactId>
+      <groupId>${pom.groupId}</groupId>
+      <artifactId>${pom.artifactId}</artifactId>
       <version>${pom.version}</version>
     </dependency>
 
