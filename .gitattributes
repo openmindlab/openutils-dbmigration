@@ -35,6 +35,7 @@ src/main/java/it/openutils/migration/sqlserver/SqlServerViewCreateOrUpdateTask.j
 src/main/java/it/openutils/migration/sqlserver/SqlServerViewCreationTask.java -text
 src/main/java/it/openutils/migration/task/setup/BaseConditionalTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/setup/BaseDbTask.java svneol=native#text/plain
+src/main/java/it/openutils/migration/task/setup/DatabaseConditionalTaskList.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/setup/DbTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/setup/ExcelConfigurationTask.java svneol=native#text/plain
 src/main/java/it/openutils/migration/task/setup/GenericConditionalTask.java svneol=native#text/plain
