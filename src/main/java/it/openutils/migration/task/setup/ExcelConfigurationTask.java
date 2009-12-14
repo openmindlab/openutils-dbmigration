@@ -138,24 +138,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         InputStream is = null;
         try
         {
-            is = script.getInputStream();
-            POIFSFileSystem fs = new POIFSFileSystem(is);
-            HSSFWorkbook hssfworkbook = new HSSFWorkbook(fs);
-            int sheetNums = hssfworkbook.getNumberOfSheets();
-            for (int j = 0; j < sheetNums; j++)
-            {
-                HSSFSheet sheet = hssfworkbook.getSheetAt(j);
-                String tableName = StringUtils.trim(hssfworkbook.getSheetName(j));
-
-                QueryConfig conf = config.get(tableName);
-                if (conf == null)
-                {
-                    suggestSheetConfig(sheet, tableName, conf, dataSource);
-                    continue;
-                }
-                processSheet(sheet, tableName, conf, dataSource);
-
-            }
+          is = script.getInputStream();
+          POIFSFileSystem fs = new POIFSFileSystem(is);
+          HSSFWorkbook hssfworkbook = new HSSFWorkbook(fs);
+          int sheetNums = hssfworkbook.getNumberOfSheets();
+          for (int j = 0; j < sheetNums; j++)
+          {
+              HSSFSheet sheet = hssfworkbook.getSheetAt(j);
+              String sheetName = StringUtils.trim(hssfworkbook.getSheetName(j));
+              QueryConfig conf = config.get(sheetName);
+              if (conf == null)
+              {
+                suggestSheetConfig(sheet, sheetName, conf, dataSource);
+                continue;
+              }
+              
+              String tableName = (StringUtils.isBlank(conf.getTableName())) ? sheetName : conf.getTableName();
+              processSheet(sheet, tableName, conf, dataSource);
+          }
 
         }
         catch (IOException e)
@@ -587,14 +587,11 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      */
     public static class QueryConfig
     {
-
-        private String checkQuery;
-
-        private String insertQuery;
-
-        private String selectQuery;
-
-        private String updateQuery;
+      private String tableName;
+      private String checkQuery;
+      private String insertQuery;
+      private String selectQuery;
+      private String updateQuery;
 
         /**
          * Returns the selectQuery.
@@ -666,6 +663,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         public void setUpdateQuery(String updateQuery)
         {
             this.updateQuery = updateQuery;
+        }
+        
+       /**
+        * Return the target table name. 
+        * @return The target table name
+        */
+        public String getTableName()
+        {
+          return this.tableName;
+        }
+
+      /**
+       * Sets the taget table name
+       * @param tableName The target table name
+       */
+        public void setTableName(String tableName)
+        {
+          this.tableName = tableName;
         }
     }
 }
