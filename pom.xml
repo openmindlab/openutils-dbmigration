@@ -20,10 +20,10 @@ is to manage db updates consistently both for development than for production re
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-  <url>http://lab.openmindonline.it/lab/products/dbmigration.html</url>
+  <url>http://www.openmindlab.com/lab/products/dbmigration.html</url>
   <issueManagement>
     <system>jira</system>
-    <url>http://lab.openmindonline.it/jira/browse/DBMIGRATION</url>
+    <url>http://jira.openmindlab.com/browse/DBMIGRATION</url>
   </issueManagement>
   <dependencies>
     <dependency>
