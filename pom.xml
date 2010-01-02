@@ -131,6 +131,6 @@ is to manage db updates consistently both for development than for production re
     </plugins>
   </build>
   <properties>
-    <spring.version>2.5.6</spring.version>
+    <spring.version>3.0.0.RELEASE</spring.version>
   </properties>
 </project>
