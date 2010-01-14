@@ -13,12 +13,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+
 /**
  * Executes the specified task list only if database vendor info matches both product name and version stated, otherwise
  * ignores the tasks. Name and version string comparison is case insensitive. If databaseProductName or version are not
  * specified in configuration (empty or null), those are treated as matching values. If both are missing, the task list
- * is executed always.
- * Example, to execute a specific task only on MySQL: <code>
+ * is executed always. Example, to execute a specific task only on MySQL: <code>
       <bean class="it.openutils.migration.task.setup.DatabaseConditionalTaskList">
           <property name="databaseProductName" value="MySQL" />
           <property name="description" value="Mysql db creation" />
@@ -29,8 +29,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
             </list>
           </property>
         </bean><code>
-
- * 
  * @author dfghi
  */
 public class DatabaseConditionalTaskList extends BaseDbTask {
@@ -80,7 +78,6 @@ public class DatabaseConditionalTaskList extends BaseDbTask {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void execute(DataSource dataSource) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         String databaseRealProductName = (String) jdbcTemplate.execute(new ConnectionCallback() {
