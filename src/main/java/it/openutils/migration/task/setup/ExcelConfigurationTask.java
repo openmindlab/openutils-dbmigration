@@ -373,11 +373,11 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 else if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC)
                 {
                     double valueDouble = cell.getNumericCellValue();
-                    // when need to really check if it is a double or an int
+                    // when need to really check if it is a double or a long
                     double fraction = valueDouble % 1;
                     if (fraction == 0)
                     {
-                        value = Integer.toString((int) valueDouble);
+                        value = Long.toString((long) valueDouble);
                     }
                     else
                     {
