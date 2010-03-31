@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>net.sourceforge.openutils</groupId>
@@ -6,7 +7,7 @@
     <version>1.3</version>
   </parent>
   <artifactId>openutils-dbmigration</artifactId>
-  <name>openutils db migration</name>
+  <name>openutils dbmigration</name>
   <description>
   <![CDATA[
 DB Migration is a framework based on Spring for handling automatic db schema updates.
@@ -25,6 +26,12 @@ is to manage db updates consistently both for development than for production re
     <system>jira</system>
     <url>http://jira.openmindlab.com/browse/DBMIGRATION</url>
   </issueManagement>
+  <inceptionYear>2007</inceptionYear>
+  <scm>
+    <connection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/trunk/openutils-dbmigration</connection>
+    <developerConnection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/trunk/openutils-dbmigration</developerConnection>
+    <url>http://openutils.svn.sourceforge.net/viewcvs.cgi/openutils/trunk/openutils-dbmigration</url>
+  </scm>
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -112,21 +119,31 @@ is to manage db updates consistently both for development than for production re
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.5.0</version>
+        <configuration>
+          <header>src/main/etc/header.txt</header>
+          <includes>
+            <include>src/**/*.java</include>
+          </includes>
+          <excludes>
+            <exclude>src/test/java/org/**/*.java</exclude>
+          </excludes>
+          <properties>
+            <year>${project.inceptionYear}-2010</year>
+            <name>${project.name}</name>
+            <description>${project.description}</description>
+            <url>${project.url}</url>
+          </properties>
+        </configuration>
         <executions>
           <execution>
-            <id>bundle</id>
-            <phase>package</phase>
             <goals>
-              <goal>single</goal>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <descriptors>
-            <descriptor>${basedir}/src/main/assembly/assembly-bundle.xml</descriptor>
-          </descriptors>
-        </configuration>
       </plugin>
     </plugins>
   </build>
