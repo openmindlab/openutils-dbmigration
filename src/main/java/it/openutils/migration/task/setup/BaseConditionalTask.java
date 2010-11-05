@@ -52,6 +52,12 @@ public abstract class BaseConditionalTask extends BaseDbTask
      */
     protected String ddl;
 
+   /**
+    *  Character used to split ddl statement, default is ";" char. 
+    *  Null or empty value disable split.
+    */
+    protected String splitChar = ";";
+    
     /**
      * If <code>true</code> executes only if check returned <code>false</code>
      */
@@ -82,6 +88,14 @@ public abstract class BaseConditionalTask extends BaseDbTask
     public final void setDdl(String ddls)
     {
         this.ddl = ddls;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public final void setSplitChar(String splitChar)
+    {
+        this.splitChar = splitChar;
     }
 
     /**
@@ -229,7 +243,15 @@ public abstract class BaseConditionalTask extends BaseDbTask
      */
     protected void executeSingle(SimpleJdbcTemplate jdbcTemplate, String scriptContent)
     {
-        String[] ddls = StringUtils.split(performSubstitution(scriptContent), ';');
+        String[] ddls;
+        if (StringUtils.isNotEmpty(splitChar))
+        {
+            ddls = StringUtils.split(performSubstitution(scriptContent), splitChar);
+        }
+        else
+        {
+            ddls = new String[]{performSubstitution(scriptContent)};
+        }
         for (String statement : ddls)
         {
             if (StringUtils.isNotBlank(statement))
