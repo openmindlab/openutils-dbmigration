@@ -295,8 +295,25 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                     }
                     else
                     {
-                        log.warn("Unable to determine type for column '{}' in table '{}'", column, tableName);
-                        return false;
+                        // DBMIGRATION-7
+                        // postgres forces lowercase
+                        res.close();
+                        res = con.getMetaData().getColumns(
+                            null,
+                            null,
+                            StringUtils.lowerCase(tableName),
+                            StringUtils.lowerCase(column));
+
+                        if (res.next())
+                        {
+                            types.add(res.getInt("DATA_TYPE"));
+                        }
+                        else
+                        {
+                            log.warn("Unable to determine type for column '{}' in table '{}'", column, tableName);
+                            return false;
+                        }
+
                     }
                     res.close();
                 }
