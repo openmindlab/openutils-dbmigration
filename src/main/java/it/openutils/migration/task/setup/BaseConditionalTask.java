@@ -262,4 +262,13 @@ public abstract class BaseConditionalTask extends BaseDbTask
         }
     }
 
+    /**
+     * Sets the variables.
+     * @param variables the variables to set
+     */
+    public void setVariables(Map<String, String> variables)
+    {
+        this.variables = variables;
+    }
+
 }
