@@ -14,7 +14,7 @@ DB Migration is a framework based on Spring for handling automatic db schema upd
 With DBMigration you can bundle upgrade scripts in you application. Its purpose
 is to manage db updates consistently both for development than for production releases.
     ]]></description>
-  <version>2.0.10-SNAPSHOT</version>
+  <version>2.1.0</version>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -28,9 +28,9 @@ is to manage db updates consistently both for development than for production re
   </issueManagement>
   <inceptionYear>2007</inceptionYear>
   <scm>
-    <connection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/trunk/openutils-dbmigration</connection>
-    <developerConnection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/trunk/openutils-dbmigration</developerConnection>
-    <url>http://openutils.svn.sourceforge.net/viewcvs.cgi/openutils/trunk/openutils-dbmigration</url>
+    <connection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-2.1.0</connection>
+    <developerConnection>scm:svn:https://openutils.svn.sourceforge.net/svnroot/openutils/tags/openutils-dbmigration-2.1.0</developerConnection>
+    <url>http://openutils.svn.sourceforge.net/viewcvs.cgi/openutils/tags/openutils-dbmigration-2.1.0</url>
   </scm>
   <dependencies>
     <dependency>
