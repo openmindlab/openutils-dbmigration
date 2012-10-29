@@ -134,6 +134,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
                 {
                     is = script.getInputStream();
                     scriptContent = IOUtils.toString(is, "UTF8");
+                    scriptContent = performSubstitution(scriptContent);
                 }
                 catch (IOException e)
                 {
