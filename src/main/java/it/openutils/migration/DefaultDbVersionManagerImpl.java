@@ -21,7 +21,7 @@ package it.openutils.migration;
 import javax.sql.DataSource;
 
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 /**
@@ -95,11 +95,11 @@ public class DefaultDbVersionManagerImpl implements DbVersionManager
      */
     public int getCurrentVersion()
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         int initialVersion = 0;
         try
         {
-            initialVersion = jdbcTemplate.queryForInt(versionQuery);
+            initialVersion = jdbcTemplate.queryForObject(versionCreate, Integer.class);
         }
         catch (EmptyResultDataAccessException e)
         {
@@ -113,7 +113,7 @@ public class DefaultDbVersionManagerImpl implements DbVersionManager
      */
     public void setNewVersion(int version)
     {
-        new SimpleJdbcTemplate(dataSource).update(versionUpdate, version);
+        new JdbcTemplate(dataSource).update(versionUpdate, version);
     }
 
 }

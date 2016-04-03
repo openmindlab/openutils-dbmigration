@@ -17,8 +17,6 @@
  */
 package it.openutils.migration.postgres;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +29,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -107,31 +107,31 @@ public class PostGreSQLSequenceChecker extends GenericConditionalTask
         });
         for (String tableName : tables)
         {
-            if (jdbcTemplate
-                .queryForLong("SELECT COUNT(*) FROM information_schema.sequences WHERE SEQUENCE_NAME ILIKE '"
+            if (jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.sequences WHERE SEQUENCE_NAME ILIKE '"
                     + tableName
-                    + "_id_seq'") > 0)
+                    + "_id_seq'",
+                Long.class) > 0)
             {
-                String idColumnName = (String) jdbcTemplate.queryForObject(
-                    "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME ILIKE '"
-                        + tableName
-                        + "' AND COLUMN_DEFAULT ILIKE 'nextval(%"
-                        + tableName
-                        + "_id_seq%'",
-                    String.class);
-                long tableRows = jdbcTemplate.queryForLong("SELECT MAX(" + idColumnName + ") FROM " + tableName);
-                long sequenceVal = jdbcTemplate.queryForLong("SELECT last_value FROM " + tableName + "_id_seq");
+                String idColumnName = jdbcTemplate
+                    .queryForObject(
+                        "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME ILIKE '"
+                            + tableName
+                            + "' AND COLUMN_DEFAULT ILIKE 'nextval(%"
+                            + tableName
+                            + "_id_seq%'",
+                        String.class);
+                long tableRows = jdbcTemplate
+                    .queryForObject("SELECT MAX(" + idColumnName + ") FROM " + tableName, Long.class);
+                long sequenceVal = jdbcTemplate
+                    .queryForObject("SELECT last_value FROM " + tableName + "_id_seq", Long.class);
                 if ((sequenceVal >= 0) && (tableRows > sequenceVal))
                 {
-                    jdbcTemplate.execute("SELECT setval('"
-                        + tableName
-                        + "_id_seq', "
-                        + Long.toString(tableRows + offset)
-                        + ")");
-                    log.info("Moved sequence \"{}_id_seq\" value from {} to {}.", new Object[]{
-                        tableName,
-                        sequenceVal,
-                        (tableRows + offset) });
+                    jdbcTemplate.execute(
+                        "SELECT setval('" + tableName + "_id_seq', " + Long.toString(tableRows + offset) + ")");
+                    log.info(
+                        "Moved sequence \"{}_id_seq\" value from {} to {}.",
+                        new Object[]{tableName, sequenceVal, (tableRows + offset) });
                     jdbcTemplate.execute("REINDEX TABLE " + tableName);
                     log.info("Reindexed table: " + tableName);
                 }

@@ -18,16 +18,16 @@
 
 package it.openutils.migration.oracle;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import org.apache.commons.lang.StringUtils;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 public class OracleTriggerTask extends GenericConditionalTask
 {
     @Override
-    protected void executeSingle(SimpleJdbcTemplate jdbcTemplate, final String scriptContent)
+    protected void executeSingle(JdbcTemplate jdbcTemplate, final String scriptContent)
     {
         if (StringUtils.isNotBlank(scriptContent))
         {

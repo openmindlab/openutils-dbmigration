@@ -18,8 +18,6 @@
 
 package it.openutils.migration.generic;
 
-import it.openutils.migration.task.setup.BaseConditionalTask;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -28,7 +26,9 @@ import java.sql.SQLException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.BaseConditionalTask;
 
 
 /**
@@ -72,7 +72,6 @@ public class JdbcIfTableExistsConditionalTask extends BaseConditionalTask
         this.schema = schema;
     }
 
-
     /**
      * Sets the table.
      * @param table the table to set
@@ -86,12 +85,12 @@ public class JdbcIfTableExistsConditionalTask extends BaseConditionalTask
      * {@inheritDoc}
      */
     @Override
-    public boolean check(SimpleJdbcTemplate jdbcTemplate)
+    public boolean check(JdbcTemplate jdbcTemplate)
     {
 
         final String tableName = StringUtils.trim(table);
 
-        return (Boolean) jdbcTemplate.getJdbcOperations().execute(new ConnectionCallback()
+        return (Boolean) jdbcTemplate.execute(new ConnectionCallback()
         {
 
             public Object doInConnection(Connection con) throws SQLException, DataAccessException

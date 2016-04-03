@@ -18,8 +18,6 @@
 
 package it.openutils.migration.oracle;
 
-import it.openutils.migration.task.setup.DbTask;
-
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -28,7 +26,9 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.DbTask;
 
 
 /**
@@ -112,7 +112,7 @@ public class OracleSequenceCreationTask implements DbTask
      */
     public void execute(DataSource dataSource)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (String sequenceName : sequences)
         {
             int result = 0;
@@ -120,19 +120,19 @@ public class OracleSequenceCreationTask implements DbTask
             if (StringUtils.contains(sequenceName, "."))
             {
                 String[] tokens = StringUtils.split(sequenceName, ".");
-                result = jdbcTemplate.queryForInt(selectAllSequences, new Object[]{tokens[1], tokens[0] });
+                result = jdbcTemplate
+                    .queryForObject(selectAllSequences, Integer.class, new Object[]{tokens[1], tokens[0] });
             }
             else
             {
-                result = jdbcTemplate.queryForInt(selectUserSequences, sequenceName);
+                result = jdbcTemplate.queryForObject(selectUserSequences, Integer.class, sequenceName);
             }
 
             if (result <= 0)
             {
                 log.info("Creating new {}", sequenceName);
-                jdbcTemplate.update(MessageFormat.format(creationQuery, new Object[]{
-                    sequenceName,
-                    String.valueOf(startsWith) }));
+                jdbcTemplate.update(
+                    MessageFormat.format(creationQuery, new Object[]{sequenceName, String.valueOf(startsWith) }));
             }
         }
     }

@@ -18,8 +18,6 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -29,7 +27,9 @@ import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -50,11 +50,11 @@ public class SqlServerProcedureCreateOrUpdateTask extends GenericConditionalTask
     public void execute(DataSource dataSource)
     {
         String checkQuery = "select count(*) from dbo.sysobjects where id = object_id(?) and (OBJECTPROPERTY(id, N'IsProcedure') = 1)";
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
             String procedureName = this.objectNameFromFileName(script);
-            int result = jdbcTemplate.queryForInt(checkQuery, procedureName);
+            int result = jdbcTemplate.queryForObject(checkQuery, Integer.class, procedureName);
             String scriptContent = readFully(script);
             scriptContent = StringUtils.replace(scriptContent, "\t", " ");
             if (StringUtils.isBlank(scriptContent))
@@ -68,10 +68,8 @@ public class SqlServerProcedureCreateOrUpdateTask extends GenericConditionalTask
             }
             else
             { // If the script is too long a list will be returned, and it must be joined to get the original script.
-                List<String> previousDDlList = jdbcTemplate.getJdbcOperations().queryForList(
-                    "exec sp_helptext ?",
-                    new Object[]{procedureName },
-                    String.class);
+                List<String> previousDDlList = jdbcTemplate
+                    .queryForList("exec sp_helptext ?", new Object[]{procedureName }, String.class);
                 String previousDDl = StringUtils.join(previousDDlList.toArray(new String[previousDDlList.size()]));
                 if (!StringUtils.equals(previousDDl, scriptContent))
                 {
@@ -92,7 +90,7 @@ public class SqlServerProcedureCreateOrUpdateTask extends GenericConditionalTask
      * @param script Stored procedure script.
      * @return
      */
-    private void createProcedure(SimpleJdbcTemplate jdbcTemplate, String script)
+    private void createProcedure(JdbcTemplate jdbcTemplate, String script)
     {
         String[] ddls = StringUtils.split(script, ";");
         for (String ddl : ddls)

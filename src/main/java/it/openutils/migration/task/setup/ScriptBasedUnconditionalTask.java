@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 /**
@@ -82,7 +82,7 @@ public class ScriptBasedUnconditionalTask extends BaseDbTask implements DbTask
             }
 
             String[] ddls = StringUtils.split(scriptContent, ";");
-            SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
             for (String ddl : ddls)
             {

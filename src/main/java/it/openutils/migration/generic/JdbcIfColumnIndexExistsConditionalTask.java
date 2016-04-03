@@ -18,8 +18,6 @@
 
 package it.openutils.migration.generic;
 
-import it.openutils.migration.task.setup.BaseConditionalTask;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -38,7 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.BaseConditionalTask;
 
 
 /**
@@ -111,7 +111,7 @@ public class JdbcIfColumnIndexExistsConditionalTask extends BaseConditionalTask
      */
     @SuppressWarnings("unchecked")
     @Override
-    public boolean check(SimpleJdbcTemplate jdbcTemplate)
+    public boolean check(JdbcTemplate jdbcTemplate)
     {
         Set<IndexItem> indexExpected = new TreeSet<IndexItem>();
 
@@ -143,8 +143,7 @@ public class JdbcIfColumnIndexExistsConditionalTask extends BaseConditionalTask
                 return indexs.values();
             }
         };
-        Collection<Set<IndexItem>> indexs = (Collection<Set<IndexItem>>) jdbcTemplate.getJdbcOperations().execute(
-            action);
+        Collection<Set<IndexItem>> indexs = (Collection<Set<IndexItem>>) jdbcTemplate.execute(action);
 
         log.debug("Expected:{}", asString(indexExpected));
         for (Set<IndexItem> index : indexs)

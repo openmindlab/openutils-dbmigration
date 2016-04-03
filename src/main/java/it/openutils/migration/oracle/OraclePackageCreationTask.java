@@ -18,8 +18,6 @@
 
 package it.openutils.migration.oracle;
 
-import it.openutils.migration.task.setup.DbTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -32,7 +30,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.DbTask;
 
 
 /**
@@ -110,7 +110,7 @@ public class OraclePackageCreationTask implements DbTask
      */
     public void execute(DataSource dataSource)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         for (Resource script : scripts)
         {
@@ -143,11 +143,12 @@ public class OraclePackageCreationTask implements DbTask
 
             if (StringUtils.isNotBlank(owner))
             {
-                result = jdbcTemplate.queryForInt(selectAllPackages, new Object[]{packageName, owner });
+                result = jdbcTemplate
+                    .queryForObject(selectAllPackages, Integer.class, new Object[]{packageName, owner });
             }
             else
             {
-                result = jdbcTemplate.queryForInt(selectUserPackages, packageName);
+                result = jdbcTemplate.queryForObject(selectUserPackages, Integer.class, packageName);
             }
 
             if (result <= 0)

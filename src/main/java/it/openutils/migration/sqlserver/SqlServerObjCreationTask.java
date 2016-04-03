@@ -18,8 +18,6 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,7 +26,9 @@ import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -90,7 +90,7 @@ public class SqlServerObjCreationTask extends GenericConditionalTask
     @Override
     public void execute(DataSource dataSource)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
             String fqTableName = this.objectNameFromFileName(script);
@@ -99,11 +99,12 @@ public class SqlServerObjCreationTask extends GenericConditionalTask
             if (StringUtils.contains(fqTableName, "."))
             {
                 String[] tokens = StringUtils.split(fqTableName, ".");
-                result = jdbcTemplate.queryForInt(qualifiedObjQuery, new Object[]{tokens[1], tokens[0] });
+                result = jdbcTemplate
+                    .queryForObject(qualifiedObjQuery, Integer.class, new Object[]{tokens[1], tokens[0] });
             }
             else
             {
-                result = jdbcTemplate.queryForInt(unqualifiedObjQuery, fqTableName);
+                result = jdbcTemplate.queryForObject(unqualifiedObjQuery, Integer.class, fqTableName);
             }
 
             if (result == 0)

@@ -18,8 +18,6 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -29,7 +27,9 @@ import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -49,12 +49,12 @@ public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
 
         String checkQuery = "select count(*) from dbo.sysobjects where id = object_id(?) and OBJECTPROPERTY(id, N'IsView') = 1";
 
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
             String viewName = this.objectNameFromFileName(script);
 
-            int result = jdbcTemplate.queryForInt(checkQuery, viewName);
+            int result = jdbcTemplate.queryForObject(checkQuery, Integer.class, viewName);
 
             String scriptContent = readFully(script);
             scriptContent = StringUtils.replace(scriptContent, "\t", " ");
@@ -73,10 +73,8 @@ public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
             else
             {
 
-                List<String> previousDDlList = jdbcTemplate.getJdbcOperations().queryForList(
-                    "exec sp_helptext ?",
-                    new Object[]{viewName },
-                    String.class);
+                List<String> previousDDlList = jdbcTemplate
+                    .queryForList("exec sp_helptext ?", new Object[]{viewName }, String.class);
 
                 String previousDDl = StringUtils.join(previousDDlList.toArray(new String[previousDDlList.size()]));
 
@@ -100,7 +98,7 @@ public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
      * @param script
      * @return
      */
-    private void createView(SimpleJdbcTemplate jdbcTemplate, String script)
+    private void createView(JdbcTemplate jdbcTemplate, String script)
     {
 
         String[] ddls = StringUtils.split(script, ";");

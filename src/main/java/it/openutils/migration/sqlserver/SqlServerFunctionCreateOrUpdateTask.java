@@ -18,8 +18,6 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -29,7 +27,9 @@ import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -51,11 +51,11 @@ public class SqlServerFunctionCreateOrUpdateTask extends GenericConditionalTask
     {
         String checkQuery = "select count(*) from dbo.sysobjects where id = object_id(?) and xtype in (N'FN', N'IF', N'TF')";
 
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
             String functionName = this.objectNameFromFileName(script);
-            int result = jdbcTemplate.queryForInt(checkQuery, functionName);
+            int result = jdbcTemplate.queryForObject(checkQuery, Integer.class, functionName);
             String scriptContent = readFully(script);
             scriptContent = StringUtils.replace(scriptContent, "\t", " ");
             if (StringUtils.isBlank(scriptContent))
@@ -69,10 +69,8 @@ public class SqlServerFunctionCreateOrUpdateTask extends GenericConditionalTask
             }
             else
             { // If the script is too long a list will be returned, and it must be joined to get the original script.
-                List<String> previousDDlList = jdbcTemplate.getJdbcOperations().queryForList(
-                    "exec sp_helptext ?",
-                    new Object[]{functionName },
-                    String.class);
+                List<String> previousDDlList = jdbcTemplate
+                    .queryForList("exec sp_helptext ?", new Object[]{functionName }, String.class);
                 String previousDDl = StringUtils.join(previousDDlList.toArray(new String[previousDDlList.size()]));
                 if (!StringUtils.equals(previousDDl, scriptContent))
                 {
@@ -93,7 +91,7 @@ public class SqlServerFunctionCreateOrUpdateTask extends GenericConditionalTask
      * @param script Function script.
      * @return
      */
-    private void createFunction(SimpleJdbcTemplate jdbcTemplate, String script)
+    private void createFunction(JdbcTemplate jdbcTemplate, String script)
     {
         String[] ddls = StringUtils.split(script, ";");
         for (String ddl : ddls)

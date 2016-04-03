@@ -18,8 +18,6 @@
 
 package it.openutils.migration.generic;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -35,7 +33,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 /**
@@ -81,7 +80,7 @@ public abstract class JdbcObjectCreationTask extends GenericConditionalTask
     @Override
     public void execute(DataSource dataSource)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         for (Resource script : scripts)
         {

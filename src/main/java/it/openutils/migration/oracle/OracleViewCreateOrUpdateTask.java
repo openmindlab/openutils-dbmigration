@@ -18,8 +18,6 @@
 
 package it.openutils.migration.oracle;
 
-import it.openutils.migration.task.setup.DbTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -34,7 +32,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.DbTask;
 
 
 /**
@@ -45,8 +45,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * Limitations:
  * </p>
  * <ol>
- * <li> * not supported in field list</li>
- * <li> fields must be enclosed in quotes</li>
+ * <li>* not supported in field list</li>
+ * <li>fields must be enclosed in quotes</li>
  * </ol>
  * @author albertoq
  * @version $Id$
@@ -110,12 +110,12 @@ public class OracleViewCreateOrUpdateTask implements DbTask
     public void execute(DataSource dataSource)
     {
 
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         for (Resource script : scripts)
         {
             String viewName = this.objectNameFromFileName(script);
 
-            int result = jdbcTemplate.queryForInt(this.selectUserViewExistence, viewName);
+            int result = jdbcTemplate.queryForObject(this.selectUserViewExistence, Integer.class, viewName);
 
             String scriptContent = readFully(script);
 
@@ -138,10 +138,8 @@ public class OracleViewCreateOrUpdateTask implements DbTask
                     continue;
                 }
 
-                String previousDDl = (String) jdbcTemplate.getJdbcOperations().queryForObject(
-                    this.selectUserViewDDL,
-                    new Object[]{viewName },
-                    String.class);
+                String previousDDl = jdbcTemplate
+                    .queryForObject(this.selectUserViewDDL, new Object[]{viewName }, String.class);
 
                 if (!StringUtils.equals(previousDDl.trim(), scriptBody.trim()))
                 {
@@ -182,7 +180,7 @@ public class OracleViewCreateOrUpdateTask implements DbTask
      * @param script
      * @return
      */
-    private void createView(SimpleJdbcTemplate jdbcTemplate, String script)
+    private void createView(JdbcTemplate jdbcTemplate, String script)
     {
 
         String[] ddls = StringUtils.split(script, ";");

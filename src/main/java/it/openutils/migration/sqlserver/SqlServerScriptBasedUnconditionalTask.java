@@ -18,10 +18,6 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.BaseDbTask;
-import it.openutils.migration.task.setup.DbTask;
-import it.openutils.migration.task.setup.ScriptBasedUnconditionalTask;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -32,7 +28,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.BaseDbTask;
+import it.openutils.migration.task.setup.DbTask;
+import it.openutils.migration.task.setup.ScriptBasedUnconditionalTask;
 
 
 /**
@@ -86,7 +86,7 @@ public class SqlServerScriptBasedUnconditionalTask extends BaseDbTask implements
             }
 
             String[] ddls = splitStatements(scriptContent);
-            SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
             for (final String ddl : ddls)
             {

@@ -21,7 +21,7 @@ package it.openutils.migration.task.setup;
 import java.util.HashMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 /**
@@ -93,9 +93,9 @@ public class GenericConditionalTask extends BaseConditionalTask
      * {@inheritDoc}
      */
     @Override
-    public boolean check(SimpleJdbcTemplate jdbcTemplate)
+    public boolean check(JdbcTemplate jdbcTemplate)
     {
-        int result = jdbcTemplate.queryForInt(performSubstitution(getCheck()));
+        int result = jdbcTemplate.queryForObject(performSubstitution(getCheck()), Integer.class);
         return result == triggerValue;
     }
 
@@ -107,9 +107,10 @@ public class GenericConditionalTask extends BaseConditionalTask
     @Deprecated
     public final void setSourceDb(String sourceDb)
     {
-        log.warn("sourceDb in "
-            + getClass().getName()
-            + " is deprecated, please use the more generic \"variables\" property");
+        log.warn(
+            "sourceDb in "
+                + getClass().getName()
+                + " is deprecated, please use the more generic \"variables\" property");
 
         if (this.variables == null)
         {

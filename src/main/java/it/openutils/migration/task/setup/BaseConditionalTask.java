@@ -31,7 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 /**
@@ -125,10 +125,10 @@ public abstract class BaseConditionalTask extends BaseDbTask
 
     /**
      * Subclasses need to override this method and provide specific checks.
-     * @param jdbcTemplate SimpleJdbcTemplate
+     * @param jdbcTemplate JdbcTemplate
      * @return true if the condition is met
      */
-    public abstract boolean check(SimpleJdbcTemplate jdbcTemplate);
+    public abstract boolean check(JdbcTemplate jdbcTemplate);
 
     /**
      * {@inheritDoc}
@@ -192,7 +192,7 @@ public abstract class BaseConditionalTask extends BaseDbTask
      */
     public void execute(DataSource dataSource)
     {
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         if (check(jdbcTemplate) ^ not)
         {
@@ -241,7 +241,7 @@ public abstract class BaseConditionalTask extends BaseDbTask
      * @param jdbcTemplate
      * @param scriptContent
      */
-    protected void executeSingle(SimpleJdbcTemplate jdbcTemplate, String scriptContent)
+    protected void executeSingle(JdbcTemplate jdbcTemplate, String scriptContent)
     {
         String[] ddls;
         if (StringUtils.isNotEmpty(splitChar))

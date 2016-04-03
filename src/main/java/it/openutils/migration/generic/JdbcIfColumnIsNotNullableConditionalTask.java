@@ -20,6 +20,8 @@ package it.openutils.migration.generic;
 
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 
 /**
  * Task that executes if a given column is not nullable (IS_NULLABLE = NO).
@@ -36,7 +38,7 @@ public class JdbcIfColumnIsNotNullableConditionalTask extends JdbcColumnBasedCon
     protected boolean checkColumnMetadata(Map<String, Object> metadata)
     {
 
-        String isNullable = (String) metadata.get("IS_NULLABLE");
-        return "NO".equals(isNullable);
+        String isNullable = StringUtils.trim((String) metadata.get("IS_NULLABLE"));
+        return "NO".equalsIgnoreCase(isNullable);
     }
 }

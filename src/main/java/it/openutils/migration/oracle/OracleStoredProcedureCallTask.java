@@ -18,24 +18,24 @@
 
 package it.openutils.migration.oracle;
 
-import it.openutils.migration.task.setup.GenericConditionalTask;
-
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.JdbcUtils;
+
+import it.openutils.migration.task.setup.GenericConditionalTask;
 
 
 public class OracleStoredProcedureCallTask extends GenericConditionalTask
 {
     @Override
-    protected void executeSingle(SimpleJdbcTemplate jdbcTemplate, final String scriptContent)
+    protected void executeSingle(JdbcTemplate jdbcTemplate, final String scriptContent)
     {
-        jdbcTemplate.getJdbcOperations().execute(new ConnectionCallback()
+        jdbcTemplate.execute(new ConnectionCallback()
         {
             public Object doInConnection(Connection con) throws SQLException, DataAccessException
             {

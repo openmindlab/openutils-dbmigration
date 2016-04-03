@@ -18,9 +18,6 @@
 
 package it.openutils.migration;
 
-import it.openutils.migration.task.setup.DbTask;
-import it.openutils.migration.task.update.DbUpdate;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +32,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import it.openutils.migration.task.setup.DbTask;
+import it.openutils.migration.task.update.DbUpdate;
 
 
 /**

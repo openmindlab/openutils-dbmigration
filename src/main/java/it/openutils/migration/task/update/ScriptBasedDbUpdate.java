@@ -18,8 +18,6 @@
 
 package it.openutils.migration.task.update;
 
-import it.openutils.migration.task.setup.ScriptBasedUnconditionalTask;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -30,7 +28,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.ScriptBasedUnconditionalTask;
 
 
 /**
@@ -124,7 +124,7 @@ public class ScriptBasedDbUpdate implements DbUpdate
         }
 
         String[] ddls = StringUtils.split(scriptContent, ";");
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         for (String ddl : ddls)
         {

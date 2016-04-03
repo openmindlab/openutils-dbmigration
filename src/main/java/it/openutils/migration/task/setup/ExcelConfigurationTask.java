@@ -141,24 +141,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         InputStream is = null;
         try
         {
-          is = script.getInputStream();
-          POIFSFileSystem fs = new POIFSFileSystem(is);
-          HSSFWorkbook hssfworkbook = new HSSFWorkbook(fs);
-          int sheetNums = hssfworkbook.getNumberOfSheets();
-          for (int j = 0; j < sheetNums; j++)
-          {
-              HSSFSheet sheet = hssfworkbook.getSheetAt(j);
-              String sheetName = StringUtils.trim(hssfworkbook.getSheetName(j));
-              QueryConfig conf = config.get(sheetName);
-              if (conf == null)
-              {
-                suggestSheetConfig(sheet, sheetName, conf, dataSource);
-                continue;
-              }
-              
-              String tableName = (StringUtils.isBlank(conf.getTableName())) ? sheetName : conf.getTableName();
-              processSheet(sheet, tableName, conf, dataSource);
-          }
+            is = script.getInputStream();
+            POIFSFileSystem fs = new POIFSFileSystem(is);
+            HSSFWorkbook hssfworkbook = new HSSFWorkbook(fs);
+            int sheetNums = hssfworkbook.getNumberOfSheets();
+            for (int j = 0; j < sheetNums; j++)
+            {
+                HSSFSheet sheet = hssfworkbook.getSheetAt(j);
+                String sheetName = StringUtils.trim(hssfworkbook.getSheetName(j));
+                QueryConfig conf = config.get(sheetName);
+                if (conf == null)
+                {
+                    suggestSheetConfig(sheet, sheetName, conf, dataSource);
+                    continue;
+                }
+
+                String tableName = (StringUtils.isBlank(conf.getTableName())) ? sheetName : conf.getTableName();
+                processSheet(sheet, tableName, conf, dataSource);
+            }
 
         }
         catch (IOException e)
@@ -210,17 +210,19 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
         buffer.append("        <entry key=\"");
         buffer.append(tableName);
-        buffer.append("\">\n"
-            + "          <bean class=\"it.openutils.migration.task.setup.ExcelConfigurationTask$QueryConfig\">\n"
-            + "            <property name=\"checkQuery\">\n"
-            + "              <value>");
+        buffer.append(
+            "\">\n"
+                + "          <bean class=\"it.openutils.migration.task.setup.ExcelConfigurationTask$QueryConfig\">\n"
+                + "            <property name=\"checkQuery\">\n"
+                + "              <value>");
 
         String initialCol = columns.get(0);
         buffer.append("select count(" + initialCol + ") from " + tableName + " where " + initialCol + " = ?");
-        buffer.append("</value>\n"
-            + "            </property>\n"
-            + "            <property name=\"insertQuery\">\n"
-            + "              <value>");
+        buffer.append(
+            "</value>\n"
+                + "            </property>\n"
+                + "            <property name=\"insertQuery\">\n"
+                + "              <value>");
 
         buffer.append("INSERT INTO ");
         buffer.append(tableName);
@@ -429,12 +431,14 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
             int existing;
             try
             {
-                existing = jdbcTemplate.queryForInt(checkStatement, checkParams, checkParamTypes);
+                existing = jdbcTemplate.queryForObject(checkStatement, Integer.class, checkParams, checkParamTypes);
             }
             catch (BadSqlGrammarException bsge)
             {
-                log.error("Error executing check query, current sheet will be skipped. {} Query in error: {}", bsge
-                    .getMessage(), checkStatement);
+                log.error(
+                    "Error executing check query, current sheet will be skipped. {} Query in error: {}",
+                    bsge.getMessage(),
+                    checkStatement);
                 return;
             }
 
@@ -478,16 +482,17 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
                 if (log.isDebugEnabled())
                 {
-                    log.debug("Missing record with key {}; inserting {}", ArrayUtils.toString(checkParams), ArrayUtils
-                        .toString(insertParams));
+                    log.debug(
+                        "Missing record with key {}; inserting {}",
+                        ArrayUtils.toString(checkParams),
+                        ArrayUtils.toString(insertParams));
                 }
 
                 if (insertParams.length != insertTypes.length)
                 {
-                    log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
-                        tableName,
-                        insertParams.length,
-                        insertTypes.length});
+                    log.warn(
+                        "Invalid number of param/type for table {}. Params: {}, types: {}",
+                        new Object[]{tableName, insertParams.length, insertTypes.length });
                 }
 
                 try
@@ -496,15 +501,14 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 }
                 catch (DataIntegrityViolationException bsge)
                 {
-                    log
-                        .error(
-                            "Error executing update, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
-                            new Object[]{
-                                tableName,
-                                rowNum + 1,
-                                insertStatement,
-                                ArrayUtils.toString(insertParams),
-                                bsge.getMessage()});
+                    log.error(
+                        "Error executing update, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
+                        new Object[]{
+                            tableName,
+                            rowNum + 1,
+                            insertStatement,
+                            ArrayUtils.toString(insertParams),
+                            bsge.getMessage() });
                     continue;
                 }
             }
@@ -516,10 +520,8 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                 {
                     RowMapper rowMapper = new ColumnMapRowMapper();
                     Object[] selectParams = ArrayUtils.subarray(values.toArray(), 0, selectNum);
-                    List<Map<String, Object>> selectResult = jdbcTemplate.query(
-                        selectStatement,
-                        selectParams,
-                        rowMapper);
+                    List<Map<String, Object>> selectResult = jdbcTemplate
+                        .query(selectStatement, selectParams, rowMapper);
                     Map<String, Object> fetchedColumns = selectResult.get(0);
                     int i = 0;
                     boolean updateNeeded = false;
@@ -552,10 +554,9 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
 
                         if (updateParams.length != insertTypes.length)
                         {
-                            log.warn("Invalid number of param/type for table {}. Params: {}, types: {}", new Object[]{
-                                tableName,
-                                updateParams.length,
-                                insertTypes.length});
+                            log.warn(
+                                "Invalid number of param/type for table {}. Params: {}, types: {}",
+                                new Object[]{tableName, updateParams.length, insertTypes.length });
                         }
 
                         try
@@ -572,26 +573,24 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
                         }
                         catch (DataIntegrityViolationException bsge)
                         {
-                            log
-                                .error(
-                                    "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
-                                    new Object[]{
-                                        tableName,
-                                        rowNum + 1,
-                                        insertStatement,
-                                        ArrayUtils.toString(updateParams),
-                                        bsge.getMessage()});
+                            log.error(
+                                "Error executing insert, record at {}:{} will be skipped. Query in error: '{}', values: {}. Error message: {}",
+                                new Object[]{
+                                    tableName,
+                                    rowNum + 1,
+                                    insertStatement,
+                                    ArrayUtils.toString(updateParams),
+                                    bsge.getMessage() });
                             continue;
                         }
                     }
                 }
                 catch (BadSqlGrammarException bsge)
                 {
-                    log
-                        .error(
-                            "Error executing query to load row values, current possible update of row will be skipped. {} Query in error: {}",
-                            bsge.getMessage(),
-                            checkStatement);
+                    log.error(
+                        "Error executing query to load row values, current possible update of row will be skipped. {} Query in error: {}",
+                        bsge.getMessage(),
+                        checkStatement);
                     return;
                 }
                 // 1 check if it is the same
@@ -607,11 +606,16 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
      */
     public static class QueryConfig
     {
-      private String tableName;
-      private String checkQuery;
-      private String insertQuery;
-      private String selectQuery;
-      private String updateQuery;
+
+        private String tableName;
+
+        private String checkQuery;
+
+        private String insertQuery;
+
+        private String selectQuery;
+
+        private String updateQuery;
 
         /**
          * Returns the selectQuery.
@@ -684,23 +688,23 @@ public class ExcelConfigurationTask extends BaseDbTask implements DbTask
         {
             this.updateQuery = updateQuery;
         }
-        
-       /**
-        * Return the target table name. 
-        * @return The target table name
-        */
+
+        /**
+         * Return the target table name.
+         * @return The target table name
+         */
         public String getTableName()
         {
-          return this.tableName;
+            return this.tableName;
         }
 
-      /**
-       * Sets the taget table name
-       * @param tableName The target table name
-       */
+        /**
+         * Sets the taget table name
+         * @param tableName The target table name
+         */
         public void setTableName(String tableName)
         {
-          this.tableName = tableName;
+            this.tableName = tableName;
         }
     }
 }

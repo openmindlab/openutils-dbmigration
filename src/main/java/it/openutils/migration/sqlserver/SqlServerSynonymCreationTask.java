@@ -18,13 +18,13 @@
 
 package it.openutils.migration.sqlserver;
 
-import it.openutils.migration.task.setup.DbTask;
-
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.DbTask;
 
 
 /**
@@ -62,22 +62,18 @@ public class SqlServerSynonymCreationTask implements DbTask
     public void execute(DataSource dataSource)
     {
 
-        SimpleJdbcTemplate jdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         for (String objectName : objects)
         {
-            int result = jdbcTemplate.queryForInt(
+            int result = jdbcTemplate.queryForObject(
                 "select count(*) from dbo.sysobjects where id = object_id(?) and xtype = N'SN'",
+                Integer.class,
                 objectName);
             if (result == 0)
             {
-                jdbcTemplate.update("CREATE SYNONYM [dbo].["
-                    + objectName
-                    + "] FOR ["
-                    + source
-                    + "].[dbo].["
-                    + objectName
-                    + "]");
+                jdbcTemplate.update(
+                    "CREATE SYNONYM [dbo].[" + objectName + "] FOR [" + source + "].[dbo].[" + objectName + "]");
             }
         }
 

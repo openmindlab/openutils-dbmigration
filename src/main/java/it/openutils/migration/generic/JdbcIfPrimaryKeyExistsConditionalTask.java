@@ -18,8 +18,6 @@
 
 package it.openutils.migration.generic;
 
-import it.openutils.migration.task.setup.BaseConditionalTask;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -33,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import it.openutils.migration.task.setup.BaseConditionalTask;
 
 
 /**
@@ -60,7 +60,7 @@ public class JdbcIfPrimaryKeyExistsConditionalTask extends BaseConditionalTask
      */
     @SuppressWarnings("unchecked")
     @Override
-    public boolean check(SimpleJdbcTemplate jdbcTemplate)
+    public boolean check(JdbcTemplate jdbcTemplate)
     {
         checkInputs();
 
@@ -83,7 +83,7 @@ public class JdbcIfPrimaryKeyExistsConditionalTask extends BaseConditionalTask
                 return primaryKey.values();
             }
         };
-        Collection<String> primaryKeyActual = (Collection<String>) jdbcTemplate.getJdbcOperations().execute(action);
+        Collection<String> primaryKeyActual = (Collection<String>) jdbcTemplate.execute(action);
 
         log.debug("Actual:{}", asString(primaryKeyActual));
         if (primaryKeyActual.isEmpty())
