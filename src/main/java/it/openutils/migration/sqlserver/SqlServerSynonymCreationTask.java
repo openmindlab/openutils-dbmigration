@@ -17,11 +17,16 @@
  */
 
 package it.openutils.migration.sqlserver;
+ 
 
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import it.openutils.migration.task.setup.DbTask;
@@ -29,23 +34,14 @@ import it.openutils.migration.task.setup.DbTask;
 
 /**
  * @author Danilo Ghirardelli
- * @version $Id:SqlServerSynonymCreationTask.java 3143 2007-09-24 19:50:49Z fgiust $
+ * 
  */
 public class SqlServerSynonymCreationTask implements DbTask
 {
 
-    private String source;
-
     private List<String> objects;
 
-    /**
-     * Sets the source.
-     * @param source the source to set
-     */
-    public void setSource(String source)
-    {
-        this.source = source;
-    }
+    private Logger log = LoggerFactory.getLogger(SqlServerSynonymCreationTask.class);
 
     /**
      * Sets the objects.
@@ -59,6 +55,7 @@ public class SqlServerSynonymCreationTask implements DbTask
     /**
      * {@inheritDoc}
      */
+    @Override
     public void execute(DataSource dataSource)
     {
 
@@ -66,15 +63,40 @@ public class SqlServerSynonymCreationTask implements DbTask
 
         for (String objectName : objects)
         {
+
+            String originalobj = objectName;
+            String synonym = objectName;
+
+            if (StringUtils.contains(objectName, "="))
+            {
+                synonym = StringUtils.substringBefore(originalobj, "=");
+                originalobj = StringUtils.substringAfter(originalobj, "=");
+            }
+
             int result = jdbcTemplate.queryForObject(
                 "select count(*) from dbo.sysobjects where id = object_id(?) and xtype = N'SN'",
-                Integer.class,
-                objectName);
-            if (result == 0)
+                new Object[]{synonym },
+                Integer.class);
+
+            if (result > 0)
             {
-                jdbcTemplate.update(
-                    "CREATE SYNONYM [dbo].[" + objectName + "] FOR [" + source + "].[dbo].[" + objectName + "]");
+                // existing synonym, nothing to do
+                continue;
             }
+
+            result = jdbcTemplate.queryForObject(
+                "select count(*) from dbo.sysobjects where id = object_id(?)",
+                new Object[]{synonym },
+                Integer.class);
+
+            if (result > 0)
+            {
+                log.warn("An existing object with name {} has been found, but it's not a synonym as expected", synonym);
+                continue;
+            }
+
+            jdbcTemplate.update("CREATE SYNONYM " + synonym + " FOR " + originalobj + "");
+
         }
 
     }
@@ -82,8 +104,9 @@ public class SqlServerSynonymCreationTask implements DbTask
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getDescription()
     {
-        return "Creating synonyms from " + source;
+        return "Creating synonyms from " + ArrayUtils.toString(objects);
     }
 }

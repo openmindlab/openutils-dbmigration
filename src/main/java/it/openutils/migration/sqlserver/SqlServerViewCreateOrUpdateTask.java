@@ -1,6 +1,6 @@
 /**
  *
- * openutils db migration (http://www.openmindlab.com/lab/products/dbmigration.html)
+ * openutils dbmigration (http://www.openmindlab.com/lab/products/dbmigration.html)
  * Copyright(C) 2007-2010, Openmind S.r.l. http://www.openmindonline.it
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -54,7 +54,7 @@ public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
         {
             String viewName = this.objectNameFromFileName(script);
 
-            int result = jdbcTemplate.queryForObject(checkQuery, Integer.class, viewName);
+            int result = jdbcTemplate.queryForObject(checkQuery, new Object[]{viewName }, Integer.class);
 
             String scriptContent = readFully(script);
             scriptContent = StringUtils.replace(scriptContent, "\t", " ");
@@ -73,16 +73,22 @@ public class SqlServerViewCreateOrUpdateTask extends GenericConditionalTask
             else
             {
 
-                List<String> previousDDlList = jdbcTemplate
-                    .queryForList("exec sp_helptext ?", new Object[]{viewName }, String.class);
+                List<String> previousDDlList = jdbcTemplate.queryForList(
+                    "exec sp_helptext ?",
+                    new Object[]{viewName },
+                    String.class);
 
                 String previousDDl = StringUtils.join(previousDDlList.toArray(new String[previousDDlList.size()]));
 
-                if (!StringUtils.equals(previousDDl, scriptContent))
+                if (!StringUtils.equals(
+                    StringUtils.replace(previousDDl, " ", ""),
+                    StringUtils.replace(scriptContent, " ", "")))
                 {
                     log.info(
                         "Previous definition of view {} differs from actual. Dropping and recreating view",
                         new Object[]{viewName });
+
+                    // log.warn("=====\n{}\n=====", previousDDl);
 
                     jdbcTemplate.update("DROP VIEW [dbo].[" + viewName + "]");
 

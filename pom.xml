@@ -34,14 +34,14 @@ is to manage db updates consistently both for development than for production re
   </scm>
   <dependencies>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.4</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>1.4</version>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -79,17 +79,17 @@ is to manage db updates consistently both for development than for production re
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-        <version>1.7.5</version>
+      <version>1.7.20</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
-        <version>1.7.5</version>
+      <version>1.7.20</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>3.2-FINAL</version>
+      <version>3.14</version>
       <optional>true</optional>
       <exclusions>
         <exclusion>
@@ -105,8 +105,7 @@ is to manage db updates consistently both for development than for production re
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <classifier>jdk15</classifier>
-      <version>5.1</version>
+      <version>6.9.10</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

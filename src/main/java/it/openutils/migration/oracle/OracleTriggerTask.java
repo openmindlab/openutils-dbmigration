@@ -18,7 +18,7 @@
 
 package it.openutils.migration.oracle;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import it.openutils.migration.task.setup.GenericConditionalTask;
